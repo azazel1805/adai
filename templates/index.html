@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADAI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦕</text></svg>">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <!-- Font Awesome for icons (optional) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            ADA<span class="adai-i">I</span>
+        </div>
+        <div class="user-info" style="display: none;"> <!-- Initially hidden -->
+            <span id="user-email"></span>
+            <button id="sign-out-button">Sign Out</button>
+        </div>
+    </header>
+
+    <main id="main-content" style="display: none;"> <!-- Initially hidden until auth check -->
+        <nav class="feature-nav">
+            <button class="feature-button" data-feature="chatbot"><i class="fas fa-comments"></i> Ada Chatbot</button>
+            <button class="feature-button" data-feature="text-gen"><i class="fas fa-file-alt"></i> Text Generator</button>
+            <button class="feature-button" data-feature="dictionary"><i class="fas fa-book"></i> Dictionary</button>
+            <button class="feature-button" data-feature="corrector"><i class="fas fa-check-double"></i> Text Corrector</button>
+            <button class="feature-button" data-feature="grammar"><i class="fas fa-spell-check"></i> Grammar Aid</button>
+            <button class="feature-button" data-feature="essay"><i class="fas fa-pen-nib"></i> Essay Helper</button>
+        </nav>
+
+        <div class="feature-display">
+            <!-- Content for each feature will be loaded/shown here -->
+            <div id="welcome-message" class="feature-content active">
+                 <h2>Welcome to ADAI!</h2>
+                 <p>Select a feature above to get started with your AI English learning assistant.</p>
+                 <p><em>Note: You must be signed in to use the API features.</em></p>
+            </div>
+
+            <!-- Chatbot -->
+            <div id="chatbot" class="feature-content">
+                 <!-- ... (chatbot UI structure remains the same) ... -->
+                  <h2><i class="fas fa-comments"></i> Ada Chatbot</h2>
+                  <div class="chat-container">
+                      <div id="chat-box">
+                          <div class="message bot">Hi! I'm Ada. How can I help you practice English today?</div>
+                      </div>
+                      <div class="chat-input-area">
+                          <textarea id="chat-input" placeholder="Type your message..." rows="2"></textarea>
+                          <button id="send-chat-button" class="control-button"><i class="fas fa-paper-plane"></i> Send</button>
+                          <button id="speak-mode-button" class="control-button" title="Toggle Speak Mode"><i class="fas fa-microphone"></i> Speak</button>
+                          <span id="speech-status" class="speech-status-indicator"></span>
+                      </div>
+                  </div>
+            </div>
+
+            <!-- Text Generator -->
+            <div id="text-gen" class="feature-content">
+                <!-- ... (text-gen UI structure remains the same) ... -->
+                 <h2><i class="fas fa-file-alt"></i> Text Generator</h2>
+                 <div class="controls">
+                     <label for="text-gen-level">Level:</label>
+                     <select id="text-gen-level"> <option value="beginner">Beginner (A1-A2)</option> ... </select>
+                     <label for="text-gen-topic">Topic:</label>
+                     <input type="text" id="text-gen-topic" placeholder="e.g., A funny holiday story">
+                     <button id="generate-text-button" class="control-button"><i class="fas fa-cogs"></i> Generate</button>
+                 </div>
+                 <div id="text-gen-output" class="output-box loading-indicator"></div>
+            </div>
+
+            <!-- Dictionary -->
+            <div id="dictionary" class="feature-content">
+                 <!-- ... (dictionary UI structure remains the same) ... -->
+                 <h2><i class="fas fa-book"></i> Dictionary</h2>
+                  <div class="controls">
+                     <label for="dict-word">Word:</label>
+                     <input type="text" id="dict-word" placeholder="Enter an English word">
+                     <button id="lookup-word-button" class="control-button"><i class="fas fa-search"></i> Look Up</button>
+                  </div>
+                  <div id="dict-output" class="output-box loading-indicator"></div>
+            </div>
+
+            <!-- Text Corrector -->
+            <div id="corrector" class="feature-content">
+                 <!-- ... (corrector UI structure remains the same) ... -->
+                 <h2><i class="fas fa-check-double"></i> Text Corrector</h2>
+                  <div class="controls">
+                      <label for="corrector-input">Text to Correct:</label>
+                      <textarea id="corrector-input" rows="6" placeholder="Paste or type your English text here..."></textarea>
+                      <button id="correct-text-button" class="control-button"><i class="fas fa-magic"></i> Correct & Get Feedback</button>
+                  </div>
+                  <div id="corrector-output" class="output-box loading-indicator">
+                      <h3>Corrected Text:</h3>
+                      <div id="corrected-text-display"></div>
+                      <h3>Feedback:</h3>
+                      <div id="feedback-display"></div>
+                  </div>
+            </div>
+
+            <!-- Grammar Aid -->
+            <div id="grammar" class="feature-content">
+                 <!-- ... (grammar UI structure remains the same) ... -->
+                  <h2><i class="fas fa-spell-check"></i> Grammar Aid</h2>
+                  <div class="controls">
+                     <label for="grammar-topic">Grammar Topic:</label>
+                     <input type="text" id="grammar-topic" placeholder="e.g., Present Perfect vs Past Simple">
+                     <button id="explain-grammar-button" class="control-button"><i class="fas fa-question-circle"></i> Explain</button>
+                  </div>
+                  <div id="grammar-output" class="output-box loading-indicator"></div>
+            </div>
+
+            <!-- Essay Helper -->
+            <div id="essay" class="feature-content">
+                 <!-- ... (essay UI structure remains the same) ... -->
+                  <h2><i class="fas fa-pen-nib"></i> Essay Helper</h2>
+                  <div class="controls">
+                      <label for="essay-topic">Essay Topic:</label>
+                      <input type="text" id="essay-topic" placeholder="e.g., The importance of renewable energy">
+                      <label for="essay-type">Essay Type:</label>
+                      <select id="essay-type"> <option value="argumentative">Argumentative</option> ... </select>
+                      <button id="generate-outline-button" class="control-button"><i class="fas fa-list-alt"></i> Generate Outline</button>
+                      <button id="generate-essay-button" class="control-button"><i class="fas fa-file-invoice"></i> Generate Full Essay</button>
+                  </div>
+                  <div id="essay-output" class="output-box loading-indicator"></div>
+            </div>
+        </div>
+    </main>
+
+    <div id="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Firebase Config -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <!-- Custom JS (includes auth logic) -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
