@@ -197,10 +197,45 @@ def api_generate_text():
     level = data.get('level')
     topic = data.get('topic')
     if not level or not topic: return jsonify({"error": "Level and topic are required"}), 400
-    level_map = { "beginner": "very simple (CEFR A1-A2)", "encounter": "simple (CEFR A2-B1)", "investigation": "intermediate (CEFR B1-B2)", "awakening": "upper-intermediate (CEFR B2)", "summit": "advanced (CEFR C1)", "expert": "near-native/highly advanced (CEFR C2)" }
+
+    level_map = {
+        "beginner": "very simple (CEFR A1-A2)",
+        "encounter": "simple (CEFR A2-B1)",
+        "investigation": "intermediate (CEFR B1-B2)",
+        "awakening": "upper-intermediate (CEFR B2)",
+        "summit": "advanced (CEFR C1)",
+        "expert": "near-native/highly advanced (CEFR C2)"
+    }
     level_description = level_map.get(level.lower(), "intermediate (CEFR B1-B2)")
-    prompt = f"Generate a short text (around 150-250 words) suitable for an English learner at the {level_description} level. The topic should be: '{topic}'. The text should be engaging, grammatically correct, and use vocabulary/structures appropriate for the specified level. The output should be only the generated text itself."
+
+    # --- MODIFIED PROMPT ---
+    prompt = f"""
+Instructions:
+You are an assistant generating educational content.
+Your task is to write a short text (approximately 150-250 words) on a specific topic, tailored for an English language learner.
+The text should be engaging, grammatically correct, and use vocabulary/syntax suitable for the specified proficiency level.
+Output *only* the generated text itself, with no extra explanations, titles, or commentary.
+
+Parameters:
+Topic: "{topic}"
+Proficiency Level: {level_description}
+
+Generated Text:
+""" # Added a clear label for the output section
+
+    print(f"--- Sending Text Gen Prompt ---\nLevel: {level_description}\nTopic: {topic}\nPrompt:\n{prompt[:300]}...") # Log the prompt start
+
     generated_text = generate_gemini_response(prompt)
+
+    print(f"--- Received Text Gen Output ---\nOutput: {generated_text[:300]}...") # Log the response start
+
+    # Basic check if response resembles the input level (indicates failure)
+    if generated_text.strip().lower() == level.lower() or level_description in generated_text.strip()[:len(level_description)+20]:
+         print(f"Warning: Text Gen output '{generated_text}' looks like an echo of the input level/description. Retrying or returning error.")
+         # Optionally: You could try a slightly different prompt format and retry once
+         # Or just return an error message to the user
+         return jsonify({"generated_text": f"Error: The AI failed to generate text for this topic/level (received: '{generated_text}'). Please try a different topic or level."})
+
     return jsonify({"generated_text": generated_text})
 
 
