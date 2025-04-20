@@ -26,7 +26,7 @@
 
     <main id="main-content" style="display: none;"> <!-- Initially hidden until auth check -->
         <nav class="feature-nav">
-            <button class="feature-button" data-feature="chatbot"><i class="fas fa-comments"></i> Ada Chatbot</button>
+            <button class="feature-button" data-feature="chatbot"><i class="fas fa-comments"></i> Ada</button>
             <button class="feature-button" data-feature="text-gen"><i class="fas fa-file-alt"></i> Text Generator</button>
             <button class="feature-button" data-feature="dictionary"><i class="fas fa-book"></i> Dictionary</button>
             <button class="feature-button" data-feature="corrector"><i class="fas fa-check-double"></i> Text Corrector</button>
@@ -65,7 +65,14 @@
                  <h2><i class="fas fa-file-alt"></i> Text Generator</h2>
                  <div class="controls">
                      <label for="text-gen-level">Level:</label>
-                     <select id="text-gen-level"> <option value="beginner">Beginner (A1-A2)</option> ... </select>
+                     <select id="text-gen-level">
+                        <option value="beginner">Beginner (A1-A2)</option>
+                        <option value="encounter">Encounter (A2-B1)</option> 
+                        <option value="investigation">Investigation (B1-B2)</option>
+                        <option value="awakening">Awakening (B2)</option>
+                        <option value="summit">Summit (C1)</option>
+                        <option value="expert">Expert (C2)</option>
+                    </select>
                      <label for="text-gen-topic">Topic:</label>
                      <input type="text" id="text-gen-topic" placeholder="e.g., A funny holiday story">
                      <button id="generate-text-button" class="control-button"><i class="fas fa-cogs"></i> Generate</button>
