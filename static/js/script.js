@@ -172,190 +172,264 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Chatbot ---
+     // --- Chatbot ---
     const chatBox = document.getElementById('chat-box');
     const chatInput = document.getElementById('chat-input');
     const sendChatButton = document.getElementById('send-chat-button');
     const speakModeButton = document.getElementById('speak-mode-button');
     const speechStatus = document.getElementById('speech-status');
-    let chatHistory = []; // Start with empty history, add initial bot message below
+    let chatHistory = [{ sender: 'bot', text: chatBox.querySelector('.message.bot').textContent }]; // Initial bot message
     let isSpeakMode = false;
     let recognition; // SpeechRecognition instance
 
-    function initializeChat() {
-        const initialBotMessage = "Hi! I'm Ada. How can I help you practice English today?";
-        if (chatBox && !chatBox.querySelector('.message.bot')) { // Add only if not already present
-             addChatMessage('bot', initialBotMessage);
-        }
-         chatHistory = chatBox ? Array.from(chatBox.querySelectorAll('.message')).map(div => ({
-              sender: div.classList.contains('user') ? 'user' : 'bot',
-              text: div.textContent
-          })) : [];
-    }
-    initializeChat(); // Set up chat history
-
-
-    // Web Speech API - Speech Synthesis (TTS) - Keep this section
+    // Web Speech API - Speech Synthesis (TTS)
     const synth = window.speechSynthesis;
     let britVoice = null;
     function loadVoices() {
         const voices = synth.getVoices();
-        britVoice = voices.find(voice => voice.lang === 'en-GB' && voice.name.includes('Google')) ||
-                   voices.find(voice => voice.lang === 'en-GB');
-        // console.log("Selected British voice:", britVoice);
+        britVoice = voices.find(voice => voice.lang === 'en-GB' && voice.name.includes('Google') || voice.name.includes('UK English')) || // Prioritize Google voices
+                   voices.find(voice => voice.lang === 'en-GB'); // Fallback to any en-GB
+        console.log("Available voices:", voices);
+        console.log("Selected British voice:", britVoice);
+        if (!britVoice) {
+            console.warn("No British English voice found for Web Speech TTS.");
+        }
     }
-    if (synth.onvoiceschanged !== undefined) { synth.onvoiceschanged = loadVoices; } loadVoices();
+    // Voices load asynchronously
+    if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = loadVoices;
+    }
+    loadVoices(); // Initial attempt
 
     function speakText(text, useElevenLabs = true) {
-        if (!text || typeof text !== 'string') return;
-        console.log(`Attempting to speak (ElevenLabs: ${useElevenLabs}): ${text.substring(0,50)}...`);
-        synth.cancel(); // Cancel any ongoing speech
+        if (!text) return;
 
-        if (useElevenLabs && ELEVENLABS_API_KEY) { // Check key exists client-side (only for conditional call)
-             console.log("Calling backend for ElevenLabs TTS...");
-             callApi('/api/elevenlabs_tts', { text: text }).then(audioBlob => {
-                 if (audioBlob instanceof Blob) {
-                     const audioUrl = URL.createObjectURL(audioBlob);
-                     const audio = new Audio(audioUrl);
-                     audio.play().catch(e => {
-                         console.error("Error playing ElevenLabs audio:", e);
-                         alert("Error playing generated audio. Trying browser voice.");
-                         speakText(text, false); // Fallback
-                     });
-                     audio.onended = () => URL.revokeObjectURL(audioUrl);
-                 } else {
-                      console.warn("ElevenLabs call did not return Blob, falling back.");
-                      speakText(text, false); // Fallback if API call failed or returned error json
-                 }
-             }).catch(e => {
-                 console.error("Error in ElevenLabs API call promise:", e);
-                 speakText(text, false); // Fallback on error
-             });
+        console.log(`Speaking: ${text.substring(0, 50)}... Use ElevenLabs: ${useElevenLabs}`);
+
+        // --- ElevenLabs Integration ---
+        if (useElevenLabs) {
+            console.log("Attempting ElevenLabs TTS...");
+            showLoading(true); // Show overlay for audio generation
+            fetch('/api/elevenlabs_tts', { // Call the Flask backend proxy
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Try to get error message from response body
+                    return response.json().then(err => { throw new Error(err.error || `HTTP error! status: ${response.status}`); });
+                }
+                return response.blob(); // Get the audio data as a Blob
+            })
+            .then(audioBlob => {
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play()
+                    .then(() => console.log("ElevenLabs audio playing."))
+                    .catch(e => {
+                        console.error("Error playing ElevenLabs audio:", e);
+                        alert("Error playing generated audio.");
+                        // Fallback to Web Speech API if ElevenLabs playback fails?
+                        // speakText(text, false);
+                    });
+                audio.onended = () => URL.revokeObjectURL(audioUrl); // Clean up blob URL
+            })
+            .catch(error => {
+                console.error('ElevenLabs TTS Error:', error);
+                alert(`ElevenLabs TTS failed: ${error.message}. Falling back to browser voice.`);
+                // Fallback to Web Speech API
+                speakText(text, false);
+            })
+             .finally(() => {
+                 showLoading(false);
+            });
+
         } else {
-             console.log("Using Web Speech API TTS...");
-             speakUtterance(text);
+        // --- Web Speech API Fallback ---
+            console.log("Using Web Speech API TTS...");
+            if (synth.speaking) {
+                console.warn('SpeechSynthesis already speaking.');
+                synth.cancel(); // Cancel previous utterance if any
+                // Use a timeout to allow cancel to complete before speaking again
+                setTimeout(() => speakUtterance(text), 100);
+            } else {
+                 speakUtterance(text);
+            }
         }
     }
 
     function speakUtterance(text){
          try {
              const utterance = new SpeechSynthesisUtterance(text);
-             utterance.onerror = (event) => console.error('SpeechSynthesisUtterance Error:', event.error);
-             if (britVoice) { utterance.voice = britVoice; utterance.lang = 'en-GB'; }
-             else { utterance.lang = 'en-GB'; console.warn("Speaking with default voice, requested en-GB."); }
-             utterance.pitch = 1; utterance.rate = 1;
+             utterance.onerror = (event) => {
+                 console.error('SpeechSynthesisUtterance Error:', event.error);
+                 alert(`Browser speech error: ${event.error}`);
+             };
+             if (britVoice) {
+                 utterance.voice = britVoice;
+                 utterance.lang = 'en-GB'; // Explicitly set lang
+                 console.log("Using voice:", britVoice.name, britVoice.lang);
+             } else {
+                 utterance.lang = 'en-GB'; // Request British English even if no specific voice found
+                 console.warn("Speaking with default voice, requested en-GB.");
+             }
+             utterance.pitch = 1;
+             utterance.rate = 1;
              synth.speak(utterance);
-         } catch (e) { console.error("Error initiating speech synthesis:", e); alert("Could not initiate browser speech synthesis."); }
+         } catch (e) {
+             console.error("Error initiating speech synthesis:", e);
+             alert("Could not initiate browser speech synthesis.");
+         }
     }
 
-    // Web Speech API - Speech Recognition (STT) - Keep this section
+
+    // Web Speech API - Speech Recognition (STT)
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
-        recognition.continuous = false; recognition.lang = 'en-US'; recognition.interimResults = false; recognition.maxAlternatives = 1;
+        recognition.continuous = false; // Process single utterances
+        recognition.lang = 'en-US'; // Can be changed, e.g., 'en-GB'
+        recognition.interimResults = false; // Get final results only
+        recognition.maxAlternatives = 1;
+
         recognition.onresult = (event) => {
             const transcript = event.results[event.results.length - 1][0].transcript.trim();
-            if(chatInput) chatInput.value = transcript;
-            if(speechStatus) speechStatus.textContent = 'Ready';
-            if(speakModeButton) speakModeButton.classList.remove('active');
+            console.log('Speech recognized:', transcript);
+            chatInput.value = transcript; // Put recognized text in input
+            speechStatus.textContent = 'Ready';
+            speakModeButton.classList.remove('active');
             isSpeakMode = false;
-            // sendChatMessage(); // Optional: uncomment to send automatically
+            // Optional: Automatically send the message after recognition
+            // sendChatMessage();
         };
-        recognition.onspeechend = () => { recognition.stop(); if(speechStatus) speechStatus.textContent = 'Processing...'; };
-        recognition.onnomatch = (event) => { if(speechStatus) speechStatus.textContent = 'No match'; if(speakModeButton) speakModeButton.classList.remove('active'); isSpeakMode = false; };
-        recognition.onerror = (event) => {
-             console.error('Speech recognition error:', event.error, event.message);
-             if(speechStatus) speechStatus.textContent = `Error: ${event.error}`;
-             if(speakModeButton) speakModeButton.classList.remove('active');
-             isSpeakMode = false;
-             if (event.error === 'not-allowed' || event.error === 'service-not-allowed') { alert("Microphone access denied."); }
-             else { alert(`Speech recognition error: ${event.error}`); }
-        };
-        recognition.onstart = () => { if(speechStatus) speechStatus.textContent = 'Listening...'; };
-        recognition.onend = () => { if(isSpeakMode) { /* Only reset if stopped unexpectedly */ }; if(speakModeButton) speakModeButton.classList.remove('active'); isSpeakMode = false; };
-    } else { console.warn("Speech Recognition not supported."); if(speakModeButton) speakModeButton.disabled = true; if(speechStatus) speechStatus.textContent = 'STT N/A'; }
 
-    if(speakModeButton) {
-        speakModeButton.addEventListener('click', () => {
-            if (!recognition) return;
-            if (isSpeakMode) { recognition.stop(); }
-            else { try { recognition.start(); speakModeButton.classList.add('active'); isSpeakMode = true; } catch (e) { console.error("Error starting STT:", e); alert(`Could not start listening: ${e.message}`); } }
-        });
+        recognition.onspeechend = () => {
+            recognition.stop();
+            speechStatus.textContent = 'Processing...';
+            console.log("Speech ended, processing...");
+        };
+
+        recognition.onnomatch = (event) => {
+            speechStatus.textContent = 'No speech recognized';
+            speakModeButton.classList.remove('active');
+            isSpeakMode = false;
+            console.log("No speech recognized.");
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            speechStatus.textContent = `Error: ${event.error}`;
+            speakModeButton.classList.remove('active');
+            isSpeakMode = false;
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                 alert("Microphone access denied. Please allow microphone access in your browser settings.");
+            } else {
+                 alert(`Speech recognition error: ${event.error}`);
+            }
+        };
+
+        recognition.onstart = () => {
+             console.log("Speech recognition started.");
+             speechStatus.textContent = 'Listening...';
+        };
+         recognition.onend = () => {
+            // Ensure status updates correctly if stopped manually or on error
+            if (isSpeakMode) { // Only reset if it wasn't stopped by successful recognition/error
+                 // This might interfere with onresult setting status to Ready
+                 // speechStatus.textContent = '';
+            }
+            speakModeButton.classList.remove('active'); // Ensure button state is reset
+            isSpeakMode = false;
+            console.log("Speech recognition ended.");
+        };
+
+
+    } else {
+        console.warn("Speech Recognition not supported in this browser.");
+        speakModeButton.disabled = true;
+        speakModeButton.title = "Speech Recognition not supported";
+        speechStatus.textContent = 'STT N/A';
     }
 
+    speakModeButton.addEventListener('click', () => {
+        if (!recognition) return;
+
+        if (isSpeakMode) {
+            recognition.stop();
+            speakModeButton.classList.remove('active');
+            speechStatus.textContent = '';
+            isSpeakMode = false;
+            console.log("Speech recognition stopped manually.");
+        } else {
+            try {
+                recognition.start();
+                speakModeButton.classList.add('active');
+                isSpeakMode = true;
+            } catch (e) {
+                console.error("Error starting speech recognition:", e);
+                alert(`Could not start listening: ${e.message}`);
+                speechStatus.textContent = 'Start Error';
+                speakModeButton.classList.remove('active');
+                isSpeakMode = false;
+            }
+        }
+    });
+
     function addChatMessage(sender, text) {
-        if (!chatBox) return;
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', sender);
-        messageDiv.textContent = text; // Use textContent for security
+        // Sanitize text before adding? Basic prevention:
+        messageDiv.textContent = text; // Use textContent to prevent XSS from basic text injection
         chatBox.appendChild(messageDiv);
         chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
         chatHistory.push({ sender, text }); // Update history
     }
 
     async function sendChatMessage() {
-    if (!chatInput || !sendChatButton) return;
-    const messageText = chatInput.value.trim();
-    if (!messageText) return;
+        const messageText = chatInput.value.trim();
+        if (!messageText) return;
 
-    addChatMessage('user', messageText);
-    const currentMessage = messageText;
-    chatInput.value = '';
-    chatInput.disabled = true; // Disable input
-    sendChatButton.disabled = true;
+        addChatMessage('user', messageText);
+        chatInput.value = ''; // Clear input
+        chatInput.disabled = true; // Disable input while bot replies
+        sendChatButton.disabled = true;
 
-    const typingIndicator = document.createElement('div');
-    typingIndicator.classList.add('message', 'bot', 'typing');
-    typingIndicator.textContent = 'Ada is typing...';
-    if(chatBox) { chatBox.appendChild(typingIndicator); chatBox.scrollTop = chatBox.scrollHeight; }
+        // Show typing indicator (optional)
+        const typingIndicator = document.createElement('div');
+        typingIndicator.classList.add('message', 'bot', 'typing');
+        typingIndicator.textContent = 'Ada is typing...';
+        chatBox.appendChild(typingIndicator);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-    // Prepare history for API call
-    const historyForApi = chatHistory.slice(0, -1).slice(-6);
 
-    let botReplyText = null; // Variable to store the reply text
-
-    try {
-        // --- Get Bot Reply ---
         const response = await callApi('/api/chat', {
-            message: currentMessage,
-            history: historyForApi
+            message: messageText,
+            history: chatHistory.slice(-6) // Send recent history context
         });
 
+        chatBox.removeChild(typingIndicator); // Remove typing indicator
+
         if (response && response.reply) {
-            botReplyText = response.reply; // Store the reply
-            addChatMessage('bot', botReplyText);
+            addChatMessage('bot', response.reply);
+            // Speak the bot's reply (use ElevenLabs preferentially)
+            speakText(response.reply, true);
         } else {
-            addChatMessage('bot', 'Sorry, I couldn\'t get a response. Please try again.');
+            addChatMessage('bot', 'Sorry, I encountered an error. Please try again.');
         }
 
-    } catch (error) {
-         // Error likely handled within callApi, but catch here just in case
-         console.error("Error during /api/chat call in sendChatMessage:", error);
-         addChatMessage('bot', 'An error occurred while getting my reply.');
-    } finally {
-         // --- Remove Typing Indicator ---
-         if(chatBox && chatBox.contains(typingIndicator)) {
-             chatBox.removeChild(typingIndicator);
-         }
-         // --- Re-enable Input REGARDLESS of TTS success ---
-         chatInput.disabled = false;
-         sendChatButton.disabled = false;
-         chatInput.focus();
-         console.log("Chat input re-enabled."); // Add log for confirmation
+        chatInput.disabled = false; // Re-enable input
+        sendChatButton.disabled = false;
+        chatInput.focus();
     }
 
-    // --- Speak the Reply (if successful) ---
-    // This now happens *after* the input is re-enabled
-    if (botReplyText) {
-        try {
-             console.log("Attempting to speak bot reply...");
-             speakText(botReplyText, true); // Speak reply (use ElevenLabs if available)
-        } catch (ttsError) {
-             // Catch potential synchronous errors in speakText initiation
-             console.error("Error initiating TTS:", ttsError);
+    sendChatButton.addEventListener('click', sendChatMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Prevent new line
+            sendChatMessage();
         }
-    }
-}
+    });
 
     // --- Text Generator ---
     const textGenLevel = document.getElementById('text-gen-level');
