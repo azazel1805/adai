@@ -294,47 +294,68 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function sendChatMessage() {
-        if (!chatInput || !sendChatButton) return;
-        const messageText = chatInput.value.trim();
-        if (!messageText) return;
+    if (!chatInput || !sendChatButton) return;
+    const messageText = chatInput.value.trim();
+    if (!messageText) return;
 
-        addChatMessage('user', messageText);
-        const currentMessage = messageText; // Store before clearing
-        chatInput.value = '';
-        chatInput.disabled = true; sendChatButton.disabled = true;
+    addChatMessage('user', messageText);
+    const currentMessage = messageText;
+    chatInput.value = '';
+    chatInput.disabled = true; // Disable input
+    sendChatButton.disabled = true;
 
-        const typingIndicator = document.createElement('div');
-        typingIndicator.classList.add('message', 'bot', 'typing');
-        typingIndicator.textContent = 'Ada is typing...';
-        if(chatBox) { chatBox.appendChild(typingIndicator); chatBox.scrollTop = chatBox.scrollHeight; }
+    const typingIndicator = document.createElement('div');
+    typingIndicator.classList.add('message', 'bot', 'typing');
+    typingIndicator.textContent = 'Ada is typing...';
+    if(chatBox) { chatBox.appendChild(typingIndicator); chatBox.scrollTop = chatBox.scrollHeight; }
 
-        // Pass the current user message and the history *before* this message
-        const historyForApi = chatHistory.slice(0, -1).slice(-6); // Send recent history context EXCLUDING the message just added
+    // Prepare history for API call
+    const historyForApi = chatHistory.slice(0, -1).slice(-6);
 
+    let botReplyText = null; // Variable to store the reply text
+
+    try {
+        // --- Get Bot Reply ---
         const response = await callApi('/api/chat', {
-            message: currentMessage, // Send the actual user message here
+            message: currentMessage,
             history: historyForApi
         });
 
-        if(chatBox && chatBox.contains(typingIndicator)) chatBox.removeChild(typingIndicator);
-
         if (response && response.reply) {
-            addChatMessage('bot', response.reply);
-            speakText(response.reply, true); // Speak reply
+            botReplyText = response.reply; // Store the reply
+            addChatMessage('bot', botReplyText);
         } else {
             addChatMessage('bot', 'Sorry, I couldn\'t get a response. Please try again.');
         }
 
-        chatInput.disabled = false; sendChatButton.disabled = false;
-        chatInput.focus();
+    } catch (error) {
+         // Error likely handled within callApi, but catch here just in case
+         console.error("Error during /api/chat call in sendChatMessage:", error);
+         addChatMessage('bot', 'An error occurred while getting my reply.');
+    } finally {
+         // --- Remove Typing Indicator ---
+         if(chatBox && chatBox.contains(typingIndicator)) {
+             chatBox.removeChild(typingIndicator);
+         }
+         // --- Re-enable Input REGARDLESS of TTS success ---
+         chatInput.disabled = false;
+         sendChatButton.disabled = false;
+         chatInput.focus();
+         console.log("Chat input re-enabled."); // Add log for confirmation
     }
 
-    if(sendChatButton) sendChatButton.addEventListener('click', sendChatMessage);
-    if(chatInput) {
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
-        });
+    // --- Speak the Reply (if successful) ---
+    // This now happens *after* the input is re-enabled
+    if (botReplyText) {
+        try {
+             console.log("Attempting to speak bot reply...");
+             speakText(botReplyText, true); // Speak reply (use ElevenLabs if available)
+        } catch (ttsError) {
+             // Catch potential synchronous errors in speakText initiation
+             console.error("Error initiating TTS:", ttsError);
+        }
     }
+}
 
     // --- Text Generator ---
     const textGenLevel = document.getElementById('text-gen-level');
