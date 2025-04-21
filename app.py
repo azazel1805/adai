@@ -319,7 +319,7 @@ def api_paraphrase():
     prompt = f"""
 Instructions:
 Rephrase the following text according to the specified style.
-Ensure the core meaning of the original text is preserved.
+Capture the core meaning but use unique phrasing.
 Output *only* the rephrased text.
 
 Style: {style}
