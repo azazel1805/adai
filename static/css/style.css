@@ -442,4 +442,36 @@ main {
     .chat-container {
         height: 400px; /* Adjust for smaller screens */
     }
+
+    /* --- Added Styles for Chat Controls --- */
+
+/* Style for TTS Toggle Button when muted */
+#toggle-tts-button.muted i {
+    opacity: 0.5; /* Make the icon slightly faded when muted */
+}
+
+/* Style for STT Speak Button when actively listening */
+#speak-mode-button.listening {
+    background-color: var(--accent-red); /* Use accent red for active listening */
+    color: white;
+    box-shadow: 0 0 8px var(--accent-red); /* Optional glow effect */
+}
+/* Ensure icon inside listening button is visible */
+#speak-mode-button.listening i {
+    color: white;
+}
+
+/* Style for Auth Loading Hiding */
+/* Initially hide main content areas until auth state is known */
+body.auth-loading > header > .user-info,
+body.auth-loading > main {
+     visibility: hidden;
+     opacity: 0;
+     transition: none; /* Prevent transition during initial hide */
+}
+/* Ensure loading overlay is visible during auth loading */
+body.auth-loading > #loading-overlay {
+    visibility: visible;
+    opacity: 1;
+}
 }
