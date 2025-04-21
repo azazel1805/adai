@@ -33,6 +33,8 @@
             <button class="feature-button" data-feature="corrector"><i class="fas fa-check-double"></i> Text Corrector</button>
             <button class="feature-button" data-feature="grammar"><i class="fas fa-spell-check"></i> Grammar Aid</button>
             <button class="feature-button" data-feature="essay"><i class="fas fa-pen-nib"></i> Essay Helper</button>
+            {/* <!-- ADD PARAPHRASER BUTTON --> */}
+            <button class="feature-button" data-feature="paraphraser"><i class="fas fa-retweet"></i> Paraphraser</button>
         </nav>
 
         <div class="feature-display">
@@ -46,7 +48,6 @@
 
             <!-- Chatbot -->
             <div id="chatbot" class="feature-content">
-                 <!-- ... (chatbot UI structure remains the same) ... -->
                   <h2><i class="fas fa-comments"></i> Ada </h2>
                   <div class="chat-container">
                       <div id="chat-box">
@@ -56,6 +57,10 @@
                           <textarea id="chat-input" placeholder="Type your message..." rows="2"></textarea>
                           <button id="send-chat-button" class="control-button"><i class="fas fa-paper-plane"></i></button>
                           <button id="speak-mode-button" class="control-button" title="Toggle Speak Mode"><i class="fas fa-microphone"></i></button>
+                          {/* <!-- Added TTS Toggle Button --> */}
+                          <button id="toggle-tts-button" class="control-button" title="Toggle Bot Speech Output (On)">
+                              <i class="fas fa-volume-up"></i>
+                          </button>
                           <span id="speech-status" class="speech-status-indicator"></span>
                       </div>
                   </div>
@@ -63,13 +68,12 @@
 
             <!-- Text Generator -->
             <div id="text-gen" class="feature-content">
-                <!-- ... (text-gen UI structure remains the same) ... -->
                  <h2><i class="fas fa-file-alt"></i> Text Generator</h2>
                  <div class="controls">
                      <label for="text-gen-level">Level:</label>
                      <select id="text-gen-level">
                         <option value="beginner">Beginner (A1-A2)</option>
-                        <option value="encounter">Encounter (A2-B1)</option> 
+                        <option value="encounter" selected>Encounter (A2-B1)</option>
                         <option value="investigation">Investigation (B1-B2)</option>
                         <option value="awakening">Awakening (B2)</option>
                         <option value="summit">Summit (C1)</option>
@@ -84,7 +88,6 @@
 
             <!-- Dictionary -->
             <div id="dictionary" class="feature-content">
-                 <!-- ... (dictionary UI structure remains the same) ... -->
                  <h2><i class="fas fa-book"></i> Dictionary</h2>
                   <div class="controls">
                      <label for="dict-word">Word:</label>
@@ -96,7 +99,6 @@
 
             <!-- Text Corrector -->
             <div id="corrector" class="feature-content">
-                 <!-- ... (corrector UI structure remains the same) ... -->
                  <h2><i class="fas fa-check-double"></i> Text Corrector</h2>
                   <div class="controls">
                       <label for="corrector-input">Text to Correct:</label>
@@ -113,7 +115,6 @@
 
             <!-- Grammar Aid -->
             <div id="grammar" class="feature-content">
-                 <!-- ... (grammar UI structure remains the same) ... -->
                   <h2><i class="fas fa-spell-check"></i> Grammar Aid</h2>
                   <div class="controls">
                      <label for="grammar-topic">Grammar Topic:</label>
@@ -125,7 +126,6 @@
 
             <!-- Essay Helper -->
             <div id="essay" class="feature-content">
-                 <!-- ... (essay UI structure remains the same) ... -->
                   <h2><i class="fas fa-pen-nib"></i> Essay Helper</h2>
                   <div class="controls">
                       <label for="essay-topic">Essay Topic:</label>
@@ -146,14 +146,39 @@
                         <option value="literary analysis">Literary Analysis</option>
                         <option value="review">Review (Book/Movie/etc.)</option>
                         <option value="research proposal">Research Proposal (Outline)</option>
-                        
                     </select>
                       <button id="generate-outline-button" class="control-button"><i class="fas fa-list-alt"></i> Generate Outline</button>
                       <button id="generate-essay-button" class="control-button"><i class="fas fa-file-invoice"></i> Generate Full Essay</button>
                   </div>
                   <div id="essay-output" class="output-box loading-indicator"></div>
             </div>
-        </div>
+
+             {/* <!-- START NEW PARAPHRASER SECTION --> */}
+             <div id="paraphraser" class="feature-content">
+                 <h2><i class="fas fa-retweet"></i> Paraphraser</h2>
+                 <div class="controls">
+                      <label for="paraphrase-input">Text to Rephrase:</label>
+                      <textarea id="paraphrase-input" rows="6" placeholder="Paste or type your text here..."></textarea>
+                 </div>
+                  <div class="controls">
+                      <label for="paraphrase-style">Rephrasing Style:</label>
+                      <select id="paraphrase-style">
+                          <option value="simpler" selected>Simpler</option>
+                          <option value="formal">Formal</option>
+                          <option value="informal">Informal</option>
+                          <option value="creative">Creative</option>
+                          <option value="complex">Complex</option>
+                          {/* <!-- Add more styles if desired, e.g., "more concise", "more detailed" --> */}
+                      </select>
+                      <button id="rephrase-button" class="control-button"><i class="fas fa-sync-alt"></i> Rephrase</button>
+                  </div>
+                 <div id="paraphrase-output" class="output-box loading-indicator">
+                     {/* <!-- Rephrased text will appear here --> */}
+                 </div>
+             </div>
+             {/* <!-- END NEW PARAPHRASER SECTION --> */}
+
+        </div> <!-- End feature-display -->
     </main>
 
     <div id="loading-overlay" style="display: none;">
@@ -161,10 +186,15 @@
         <p>Processing...</p>
     </div>
 
+     {/* <!-- Footer moved outside main, before scripts --> */}
+     <footer class="page-footer">
+        <p class="footer-credit">Created by HOT®</p>
+    </footer>
+
     <!-- Firebase Config -->
     <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
     <!-- Custom JS (includes auth logic) -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    
+
 </body>
 </html>
