@@ -229,34 +229,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (synth.onvoiceschanged !== undefined) { synth.onvoiceschanged = loadVoices; } loadVoices();
 
-    // --- MODIFIED speakText Function (Strips "Ada:", Checks isTtsEnabled) ---
+    // --- MODIFIED speakText Function (Remove direct key check) ---
     function speakText(text, useElevenLabs = true) {
-        if (!isTtsEnabled) { /* console.log("TTS disabled."); */ return; } // Exit if disabled
+        if (!isTtsEnabled) { /* console.log("TTS disabled."); */ return; }
         if (!text || typeof text !== 'string') { console.warn("speakText invalid input:", text); return; }
 
         let textToSpeak = text.trim();
         if (textToSpeak.toLowerCase().startsWith("ada:")) {
             textToSpeak = textToSpeak.substring(4).trim();
-            // console.log("Stripped 'Ada:' prefix for TTS.");
         }
-        if (!textToSpeak) { return; } // Don't speak if empty after stripping
+        if (!textToSpeak) { return; }
 
         // console.log(`Speaking (11L: ${useElevenLabs}): ${textToSpeak.substring(0,50)}...`);
-        synth.cancel(); // Cancel previous speech
+        synth.cancel();
 
-        if (useElevenLabs && ELEVENLABS_API_KEY) {
-             // console.log("Calling backend for ElevenLabs TTS..."); // Reduced verbosity
+        // --- REMOVE THE KEY CHECK HERE ---
+        // if (useElevenLabs && ELEVENLABS_API_KEY) { // <-- OLD LINE
+        if (useElevenLabs) {                        // <-- NEW LINE (Just check the flag)
+             // --- END REMOVAL ---
+             console.log("Attempting backend ElevenLabs TTS..."); // Log intent
              callApi('/api/elevenlabs_tts', { text: textToSpeak }).then(audioBlob => {
                  if (audioBlob instanceof Blob) {
-                     if (!isTtsEnabled) return; // Re-check state
+                     if (!isTtsEnabled) return;
                      const audioUrl = URL.createObjectURL(audioBlob);
                      const audio = new Audio(audioUrl);
-                     audio.play().catch(e => { console.error("Error playing 11L audio:", e); speakText(textToSpeak, false); });
+                     audio.play().catch(e => { console.error("Error playing 11L audio:", e); speakText(textToSpeak, false); }); // Fallback
                      audio.onended = () => URL.revokeObjectURL(audioUrl);
-                 } else { speakText(textToSpeak, false); }
-             }).catch(e => { console.error("Error in 11L promise:", e); speakText(textToSpeak, false); });
+                 } else {
+                      // API call likely failed (returned error JSON or null), fallback
+                      console.warn("ElevenLabs call did not return Blob, falling back to Web Speech.");
+                      speakText(textToSpeak, false);
+                 }
+             }).catch(e => {
+                 // Network error or other issue with callApi itself
+                 console.error("Error in ElevenLabs API call promise:", e);
+                 speakText(textToSpeak, false); // Fallback
+             });
         } else {
-             // console.log("Using Web Speech API TTS..."); // Reduced verbosity
+             // Use Web Speech API (Fallback)
+             console.log("Using Web Speech API TTS...");
              speakUtterance(textToSpeak);
         }
     }
