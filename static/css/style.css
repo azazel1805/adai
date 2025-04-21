@@ -315,18 +315,18 @@ main {
 
 .chat-input-area {
     display: flex;
-    padding: 40px;
+    padding: 10px;
     border-top: 1px solid var(--border-color);
     background-color: #f9f9f9;
     align-items: center; /* Align items vertically */
-    gap: 20px;
+    gap: 10px;
 }
 
 #chat-input {
     flex-grow: 1;
     border: 1px solid var(--border-color);
     border-radius: 15px;
-    padding: 10px 15px;
+    padding: 10px 30px;
     resize: none; /* Disable manual resize */
     font-size: 1em;
     max-height: 80px; /* Limit input height */
