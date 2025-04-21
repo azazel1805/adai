@@ -326,11 +326,14 @@ main {
     flex-grow: 1;
     border: 1px solid var(--border-color);
     border-radius: 15px;
-    padding: 10px 100px;
-    resize: none; /* Disable manual resize */
+    padding: 10px 15px; /* Reduced horizontal padding */
+    resize: none;
     font-size: 1em;
-    max-height: 80px; /* Limit input height */
-    overflow-y: auto; /* Allow scrolling if needed */
+    max-height: 80px;
+    overflow-y: auto;
+    /* Ensure default text wrapping */
+    white-space: pre-wrap; /* Usually the default for textarea, but good to be explicit */
+    word-wrap: break-word; /* Also often default, ensures long words break */
 }
 
 #send-chat-button, #speak-mode-button {
