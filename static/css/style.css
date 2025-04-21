@@ -326,7 +326,7 @@ main {
     flex-grow: 1;
     border: 1px solid var(--border-color);
     border-radius: 15px;
-    padding: 10px 30px;
+    padding: 10px 100px;
     resize: none; /* Disable manual resize */
     font-size: 1em;
     max-height: 80px; /* Limit input height */
