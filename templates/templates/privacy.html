@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - ADAI</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦕</text></svg>">
+    <!-- Link to your main stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Basic styles specific to the privacy policy page for readability -->
+    <style>
+        body {
+            background-color: var(--bg-color, #f8f8f0); /* Use variable or fallback */
+            color: var(--text-color, #333);
+            font-family: var(--font-main, sans-serif);
+            line-height: 1.6;
+            padding-bottom: 80px; /* Ensure space for footer */
+        }
+        .privacy-container {
+            max-width: 800px;
+            margin: 30px auto; /* Center the content */
+            padding: 25px 30px;
+            background-color: #ffffff; /* White background for policy text */
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .privacy-container h1 {
+            font-size: 2em;
+            margin-bottom: 25px;
+            text-align: center;
+            color: var(--text-color, #333);
+            border-bottom: 2px solid var(--primary-yellow, #FFD700);
+            padding-bottom: 10px;
+        }
+        .privacy-container h2 {
+            font-size: 1.4em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            color: var(--text-color, #333);
+        }
+         .privacy-container h3 {
+            font-size: 1.1em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #444;
+        }
+        .privacy-container p,
+        .privacy-container li {
+            margin-bottom: 12px;
+            color: #555; /* Slightly lighter text for readability */
+        }
+        .privacy-container ul {
+            padding-left: 25px; /* Indent lists */
+        }
+        .privacy-container strong {
+            color: var(--text-color, #333); /* Make strong text darker */
+        }
+        .privacy-container a {
+            color: var(--accent-red, #DC143C); /* Use accent color for links */
+            text-decoration: none;
+        }
+        .privacy-container a:hover {
+            text-decoration: underline;
+        }
+        /* Ensure footer is visible */
+        .page-footer {
+             position: relative; /* Adjust if using fixed footer elsewhere */
+             margin-top: 40px;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- You can optionally include a simplified header or navigation -->
+    <!-- Example: -->
+     <header style="padding: 10px 30px; justify-content: center;">
+         <div class="logo" style="font-size: 1.5em;">
+             <a href="{{ url_for('index') }}" style="text-decoration: none; color: inherit;">
+                 ADA<span class="adai-i">I</span>
+                 <small><sub>Beta</sub></small>
+             </a>
+         </div>
+     </header>
+
+    <div class="privacy-container">
+        <h1>Privacy Policy for ADAI</h1>
+
+        <p><strong>Effective Date:</strong> **April 22, 2025**</p>
+
+        <p>Welcome to ADAI! This Privacy Policy explains how we ("we," "us," or "our") collect, use, share, and protect information in relation to our web application ADAI (the "Service"). Please read this policy carefully. By using the Service, you agree to the collection and use of information in accordance with this policy.</p>
+
+        <h2>1. Information We Collect</h2>
+
+        <p>We collect the following types of information:</p>
+
+        <h3>a) Information You Provide Directly:</h3>
+        <ul>
+            <li><strong>Account Information:</strong> When you register an account using Firebase Authentication (e.g., via Email/Password or Google Sign-In), we receive information associated with that account, such as your email address, and potentially your name or profile picture if provided by the authentication provider (e.g., Google). Firebase handles the storage and security of passwords.</li>
+            <li><strong>User Content:</strong> Any text you voluntarily enter into the Service's features, including messages sent to the chatbot, text submitted for generation, dictionary lookups, text submitted for correction, grammar topics, essay topics, text submitted for paraphrasing, and scenario descriptions or interactions.</li>
+        </ul>
+
+        <h3>b) Information Collected Automatically:</h3>
+        <ul>
+            <li><strong>Usage Data:</strong> We may collect information automatically about how you access and use the Service. This may include information like your IP address, browser type, device type, operating system, pages viewed, time spent on pages, and dates/times of access. This data is typically collected by our hosting provider (Render) and potentially through standard web server logs for operational and security purposes.</li>
+            <li><strong>Cookies and Local Storage:</strong>
+                <ul>
+                    <li><strong>Firebase Authentication:</strong> Firebase uses cookies or browser storage (like localStorage, sessionStorage, IndexedDB) to manage your authentication session and keep you logged in across sessions, based on your chosen persistence settings.</li>
+                    <li><strong>Service Preferences:</strong> We use browser `localStorage` to store your preferences, such as the Text-to-Speech (TTS) enabled/disabled setting.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h2>2. How We Use Your Information</h2>
+
+        <p>We use the information we collect for the following purposes:</p>
+        <ul>
+            <li><strong>To Provide and Maintain the Service:</strong> To operate the ADAI application, authenticate users, process requests, and deliver the AI-powered features (chat, text generation, correction, paraphrasing, scenarios, etc.).</li>
+            <li><strong>To Process Your Requests:</strong> To send the User Content you provide to the relevant third-party AI APIs (Google Gemini, ElevenLabs) via our secure backend server to generate responses, corrections, or audio necessary for the requested feature.</li>
+            <li><strong>To Improve the Service:</strong> To understand how users interact with the Service, identify areas for improvement, troubleshoot issues, and enhance functionality. Analysis is typically performed on aggregated or anonymized data where feasible.</li>
+            <li><strong>To Maintain Security:</strong> To monitor for and protect the Service and our users from potential fraud, abuse, or security incidents.</li>
+            <li><strong>To Comply with Law:</strong> To comply with applicable legal obligations, lawful requests from authorities, regulations, or legal processes.</li>
+        </ul>
+
+        <h2>3. How We Share Your Information</h2>
+
+        <p>We do not sell your personal information. We share information only with the following third-party service providers as necessary to provide the Service:</p>
+        <ul>
+            <li><strong>Google (Firebase Authentication & Google Gemini API):</strong>
+                <ul>
+                    <li>Firebase Authentication manages the sign-up/login process. Information you provide during authentication is governed by <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google's Privacy Policy</a>.</li>
+                    <li>User Content submitted to AI features (chatbot, text generator, dictionary, corrector, grammar aid, essay helper, paraphraser, scenarios) is transmitted through our backend to the Google Gemini API for processing. Data handling by Google is subject to their terms, including the <a href="https://cloud.google.com/terms/data-processing-addendum" target="_blank" rel="noopener noreferrer">Cloud Data Processing Addendum</a> where applicable.</li>
+                </ul>
+            </li>
+            <li><strong>ElevenLabs (Text-to-Speech API):</strong>
+                <ul>
+                    <li>Text content (typically AI-generated responses) is sent via our backend to the ElevenLabs API to synthesize audio when the TTS feature is enabled. Data handling is subject to the <a href="https://elevenlabs.io/privacy" target="_blank" rel="noopener noreferrer">ElevenLabs Privacy Policy</a>.</li>
+                </ul>
+            </li>
+            <li><strong>Render (Hosting Provider):</strong>
+                <ul>
+                    <li>Our application (frontend and backend) is hosted on Render. Render processes data as necessary to provide the hosting service, as outlined in the <a href="https://render.com/privacy" target="_blank" rel="noopener noreferrer">Render Privacy Policy</a>. This may include standard web logs.</li>
+                </ul>
+            </li>
+            <li><strong>Legal Requirements:</strong> We may disclose your information if required by law or if we believe in good faith that such action is necessary to comply with legal obligations, protect our rights or property, prevent fraud, or ensure the safety of our users or the public.</li>
+        </ul>
+        <p><strong>Important Note on AI Processing:</strong> Please be aware that the core functionality of ADAI relies on sending the text you provide to external AI services (Google Gemini, ElevenLabs). Avoid submitting sensitive personal information (e.g., financial details, health information, private identification numbers) through the AI features. While we utilize these services to provide functionality, their handling of data is governed by their respective policies.</p>
+
+        <h2>4. Data Security</h2>
+
+        <p>We implement technical and organizational measures designed to protect the information we handle. This includes using HTTPS for data transmission and relying on the security infrastructure of our hosting provider (Render) and authentication provider (Firebase). However, please understand that no method of transmission over the Internet or electronic storage is 100% secure. We cannot guarantee absolute security.</p>
+
+        <h2>5. Data Retention</h2>
+        <ul>
+            <li><strong>Account Information:</strong> Your Firebase Authentication information (e.g., email used for sign-up) is retained as long as your ADAI account remains active.</li>
+            <li><strong>User Content & AI Interactions:</strong> Text submitted to AI features is processed by our backend and sent to third-party APIs. We do not intentionally store the content of these interactions or the AI-generated responses on our primary application servers long-term after the request is fulfilled, unless required for temporary caching or debugging (which would be limited in scope and duration). The retention policies of Google Gemini and ElevenLabs apply to the data they process.</li>
+            <li><strong>Usage Data & Logs:</strong> Anonymized or aggregated usage data may be retained for analytical purposes. Server logs containing IP addresses may be retained by our hosting provider (Render) for a limited period for security and operational needs.</li>
+            <li><strong>Local Storage:** Preferences stored in your browser's `localStorage` (like the TTS setting) remain until you clear your browser data.</li>
+        </ul>
+
+        <h2>6. Your Rights and Choices</h2>
+        <ul>
+            <li><strong>Access/Update Account Info:</strong> You can generally manage your basic Firebase Authentication profile information (e.g., password for email sign-in, connected Google account) through the respective interfaces provided by Firebase or Google.</li>
+            <li><strong>Delete Your Account:</strong> To request deletion of your ADAI account and associated data that we directly control (like the potential link between your Firebase UID and a Stripe ID if payments are added later), please contact us using the information below. We will process your request in accordance with applicable laws. Note that deleting your account may not automatically delete data held by third-party services according to their policies.</li>
+            <li><strong>Manage Local Storage:** You can clear `localStorage` through your browser settings.</li>
+            <li><strong>Other Rights:** Depending on your jurisdiction (e.g., EEA, California), you may have additional rights such as the right to access specific data we hold, correct inaccuracies, restrict processing, or request data portability. Please contact us to make such requests.</li>
+        </ul>
+
+        <h2>7. Children's Privacy</h2>
+
+        <p>ADAI is not directed to individuals under the age of 13 (or a higher age threshold where applicable by law). We do not knowingly collect personal information from children. If you believe we have inadvertently collected such information, please contact us immediately so we can take steps to delete it.</p>
+
+        <h2>8. Changes to This Privacy Policy</h2>
+
+        <p>We may update this Privacy Policy periodically to reflect changes in our practices or for legal or regulatory reasons. We will post the updated policy on this page and change the "Effective Date" at the top. We encourage you to review this policy regularly.</p>
+
+        <h2>9. Contact Us</h2>
+
+        <p>If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us at: <a href="mailto:your.support.email@example.com">**your.support.email@example.com**</a></p>
+
+    </div> <!-- End privacy-container -->
+
+    <footer class="page-footer">
+        <p class="footer-credit">Created by HOT®</p>
+        <p style="margin-top: 5px; font-size: 0.8em;">
+            <a href="{{ url_for('index') }}">Back to App</a> |
+            <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a>
+            {# | <a href="/terms">Terms of Service</a> #}
+        </p>
+    </footer>
+
+</body>
+</html>
