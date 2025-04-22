@@ -130,8 +130,16 @@ def generate_gemini_response(prompt, is_chat=False, chat_history=None):
     except google.api_core.exceptions.InvalidArgument as e: print(f"Invalid Argument: {e}"); return {"error": "Invalid request to AI"}
     except Exception as e: print(f"Generic Gemini Error: {type(e).__name__} - {e}"); return {"error": "Unexpected AI service error"}
 
+# Inside app.py, add this route function
 
+@app.route('/privacy')
+def privacy_policy():
+    """Serves the privacy policy page."""
+    return render_template('privacy.html')
+
+# Make sure it's outside other functions but under the app = Flask(__name__) line
 # --- Frontend Routes ---
+
 @app.route('/')
 def index(): return render_template('index.html')
 @app.route('/signin')
