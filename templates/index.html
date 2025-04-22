@@ -33,12 +33,13 @@
             <button class="feature-button" data-feature="corrector"><i class="fas fa-check-double"></i> Text Corrector</button>
             <button class="feature-button" data-feature="grammar"><i class="fas fa-spell-check"></i> Grammar Aid</button>
             <button class="feature-button" data-feature="essay"><i class="fas fa-pen-nib"></i> Essay Helper</button>
-            
             <button class="feature-button" data-feature="paraphraser"><i class="fas fa-retweet"></i> Paraphraser</button>
+             {/* <!-- ADD SCENARIO BUTTON --> */}
+             <button class="feature-button" data-feature="scenario"><i class="fas fa-theater-masks"></i> Scenario Practice</button>
         </nav>
 
         <div class="feature-display">
-            <!-- Content for each feature will be loaded/shown here -->
+            <!-- Welcome Message -->
             <div id="welcome-message" class="feature-content active">
                  <h2>Welcome to ADAI!</h2>
                  <p>Select a feature above to get started with your AI English learning assistant.</p>
@@ -48,25 +49,26 @@
 
             <!-- Chatbot -->
             <div id="chatbot" class="feature-content">
-    <h2><i class="fas fa-comments"></i> Ada </h2>
-    <div class="chat-container">
-        <div id="chat-box">
-            <div class="message bot">Hi! I'm Ada. How can I help you practice English today?</div>
-        </div>
-        <div class="chat-input-area">
-             <input type="text" id="chat-input" placeholder="Type your message...">
-             <!-- Wrap buttons and status indicator in a new div -->
-             <div class="button-group">
-                <button id="send-chat-button" class="control-button"><i class="fas fa-paper-plane"></i></button>
-                <button id="speak-mode-button" class="control-button" title="Toggle Speak Mode"><i class="fas fa-microphone"></i></button>
-                <button id="toggle-tts-button" class="control-button" title="Toggle Bot Speech Output (On)">
-                    <i class="fas fa-volume-up"></i>
-                </button>
-                <span id="speech-status" class="speech-status-indicator"></span>
-             </div>
-        </div>
-    </div>
-</div>
+                <h2><i class="fas fa-comments"></i> Ada </h2>
+                <div class="chat-container">
+                    <div id="chat-box">
+                        <div class="message bot">Hi! I'm Ada. How can I help you practice English today?</div>
+                    </div>
+                    <div class="chat-input-area">
+                         {/* <!-- Your change: input instead of textarea --> */}
+                         <input type="text" id="chat-input" placeholder="Type your message...">
+                         {/* <!-- Your change: button group --> */}
+                         <div class="button-group">
+                            <button id="send-chat-button" class="control-button"><i class="fas fa-paper-plane"></i></button>
+                            <button id="speak-mode-button" class="control-button" title="Toggle Speak Mode"><i class="fas fa-microphone"></i></button>
+                            <button id="toggle-tts-button" class="control-button" title="Toggle Bot Speech Output (On)">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                            <span id="speech-status" class="speech-status-indicator"></span>
+                         </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Text Generator -->
             <div id="text-gen" class="feature-content">
@@ -155,7 +157,7 @@
                   <div id="essay-output" class="output-box loading-indicator"></div>
             </div>
 
-             
+             <!-- Paraphraser -->
              <div id="paraphraser" class="feature-content">
                  <h2><i class="fas fa-retweet"></i> Paraphraser</h2>
                  <div class="controls">
@@ -170,15 +172,42 @@
                           <option value="informal">Informal</option>
                           <option value="creative">Creative</option>
                           <option value="complex">Complex</option>
-                          
                       </select>
                       <button id="rephrase-button" class="control-button"><i class="fas fa-sync-alt"></i> Rephrase</button>
                   </div>
-                 <div id="paraphrase-output" class="output-box loading-indicator">
-                     
+                 <div id="paraphrase-output" class="output-box loading-indicator"></div>
+             </div>
+
+             {/* <!-- START NEW SCENARIO SECTION --> */}
+             <div id="scenario" class="feature-content">
+                 <h2><i class="fas fa-theater-masks"></i> Scenario Practice</h2>
+                 <div id="scenario-setup">
+                     <div class="controls">
+                          <label for="scenario-description">Describe the Scenario:</label>
+                          <textarea id="scenario-description" rows="4" placeholder="Example: I am at a job interview for a software engineer position. Ada is the interviewer."></textarea>
+                     </div>
+                      <div class="controls">
+                           <button id="start-scenario-button" class="control-button"><i class="fas fa-play"></i> Start Scenario</button>
+                      </div>
+                      <p><em>Describe the situation and clearly state the role Ada should play. For example: "Ordering food at a cafe, Ada is the barista", "Asking for directions to the nearest museum in Izmir, Ada is a local person", "Job interview for a marketing manager role, Ada is the hiring manager".</em></p>
+                 </div>
+                 <div id="scenario-interaction" style="display: none;">
+                     <h3 id="scenario-title-display">Scenario: </h3>
+                     <div class="chat-container scenario-chat-container">
+                         <div id="scenario-chat-box"></div>
+                         <div class="chat-input-area scenario-input-area">
+                              {/* Use input matching the main chatbot change */}
+                              <input type="text" id="scenario-chat-input" placeholder="Type your response...">
+                              <div class="button-group"> {/* Apply button group consistency */}
+                                 <button id="send-scenario-chat-button" class="control-button"><i class="fas fa-paper-plane"></i> Send</button>
+                                 {/* Removed scenario-specific TTS/STT buttons - use global ones */}
+                             </div>
+                         </div>
+                     </div>
+                     <button id="reset-scenario-button" class="control-button secondary-button" style="margin-top: 15px;"><i class="fas fa-undo"></i> New Scenario</button>
                  </div>
              </div>
-             
+             {/* <!-- END NEW SCENARIO SECTION --> */}
 
         </div> <!-- End feature-display -->
     </main>
@@ -188,8 +217,7 @@
         <p>Processing...</p>
     </div>
 
-     
-     <footer class="page-footer">
+    <footer class="page-footer">
         <p class="footer-credit">Created by HOT®</p>
     </footer>
 
