@@ -38,12 +38,17 @@ header {
     background-color: #ffffff;
     box-shadow: 0 2px 5px var(--shadow-light);
     border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 10px; /* Add gap for wrapped items */
 }
 
 .logo {
     font-size: 2em;
     font-weight: bold;
     color: var(--text-color);
+    display: inline-flex; /* Keep items on same line */
+    align-items: baseline; /* Align text baselines */
+    white-space: nowrap; /* Prevent logo text from wrapping */
 }
 
 .logo .adai-i {
@@ -51,6 +56,23 @@ header {
     text-shadow: 0 0 5px var(--primary-yellow), 0 0 8px #FFA500; /* Glow effect */
     animation: pulse-glow 2s infinite alternate;
 }
+
+/* Styling for <small><sub>Beta</sub></small> */
+.logo small,
+.signin-title small {
+    font-size: 0.6em; /* Make it small */
+    vertical-align: text-top; /* Position near top */
+    margin-left: 5px;
+    color: #888; /* Muted color */
+    font-weight: normal; /* Not bold */
+}
+.logo small sub,
+.signin-title small sub {
+     /* Sub inherits styles from small, just provides offset */
+     vertical-align: sub; /* Ensure subscript positioning */
+     font-size: inherit; /* Inherit size from parent small tag */
+}
+
 
 @keyframes pulse-glow {
     from { text-shadow: 0 0 5px var(--primary-yellow), 0 0 8px #FFA500; }
@@ -61,11 +83,16 @@ header {
     display: flex;
     align-items: center;
     gap: 15px;
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 #user-email {
     font-size: 0.9em;
     color: #555;
+    white-space: nowrap; /* Prevent email from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ... if email is too long */
+    max-width: 200px; /* Adjust max width as needed */
 }
 
 #sign-out-button {
@@ -76,6 +103,7 @@ header {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    white-space: nowrap; /* Prevent button text wrap */
 }
 
 #sign-out-button:hover {
@@ -86,13 +114,13 @@ header {
 main {
     flex-grow: 1;
     padding: 20px 30px;
-    display: flex; /* Use flex for sidebar/content layout if needed, or just flow */
-    flex-direction: column; /* Default: nav on top */
+    display: flex;
+    flex-direction: column;
 }
 
 .feature-nav {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 25px;
     padding-bottom: 15px;
@@ -105,24 +133,24 @@ main {
     background-color: var(--button-bg);
     color: var(--text-color);
     border: 1px solid var(--border-color);
-    border-radius: 25px; /* Rounded pill shape */
+    border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px var(--shadow-light);
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap; /* Prevent button text wrap */
 }
 
 .feature-button i {
-    color: var(--primary-yellow); /* Icon color */
+    color: var(--primary-yellow);
 }
-
 
 .feature-button:hover,
 .feature-button.active {
     background-color: var(--primary-yellow);
-    color: #333; /* Darker text on yellow */
+    color: #333;
     border-color: darken(var(--primary-yellow), 10%);
     box-shadow: 0 4px 8px var(--shadow-medium);
     transform: translateY(-2px);
@@ -130,7 +158,7 @@ main {
 
 .feature-button.active i,
 .feature-button:hover i {
-    color: #333; /* Change icon color on hover/active */
+    color: #333;
 }
 
 
@@ -140,16 +168,16 @@ main {
     padding: 25px;
     border-radius: 8px;
     box-shadow: 0 3px 10px var(--shadow-light);
-    min-height: 400px; /* Ensure it has some height */
+    min-height: 400px;
 }
 
 .feature-content {
-    display: none; /* Hide all features by default */
+    display: none;
     animation: fadeIn 0.5s ease-in-out;
 }
 
 .feature-content.active {
-    display: block; /* Show only the active one */
+    display: block;
 }
 
 @keyframes fadeIn {
@@ -162,7 +190,7 @@ main {
     margin-bottom: 20px;
     border-bottom: 2px solid var(--primary-yellow);
     padding-bottom: 5px;
-    display: inline-block; /* So border only underlines text */
+    display: inline-block;
 }
 
 .feature-content h2 i {
@@ -183,12 +211,13 @@ main {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
-    align-items: center;
+    align-items: center; /* Default alignment */
 }
 
 .controls label {
     font-weight: bold;
     margin-right: 5px;
+    flex-shrink: 0; /* Prevent labels from shrinking */
 }
 
 .controls input[type="text"],
@@ -198,15 +227,25 @@ main {
     border: 1px solid var(--border-color);
     border-radius: 5px;
     font-size: 1em;
-    flex-grow: 1; /* Allow inputs to take available space */
-    min-width: 150px; /* Prevent inputs from becoming too small */
+    flex-grow: 1;
+    min-width: 150px;
+    height: 40px; /* Give inputs a default height */
 }
 
 .controls textarea {
-    width: 100%; /* Make textareas take full width in their flex container */
-    resize: vertical; /* Allow vertical resize */
-    min-height: 80px;
+    width: 100%;
+    resize: vertical;
+    min-height: 80px; /* Override default height for textareas */
+    height: auto; /* Allow height to be determined by rows/content */
+    line-height: 1.4;
 }
+
+.controls select {
+     /* Allow select to determine its own height */
+     height: 40px;
+     padding: 8px 10px; /* Adjust padding for select */
+}
+
 
 .control-button {
     padding: 10px 18px;
@@ -219,8 +258,20 @@ main {
     transition: background-color 0.3s ease, transform 0.1s ease;
     display: inline-flex;
     align-items: center;
+    justify-content: center; /* Center icon/text */
     gap: 6px;
+    height: 40px; /* Match input height */
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+    white-space: nowrap;
 }
+/* Secondary button style for reset etc. */
+.control-button.secondary-button {
+     background-color: #6c757d; /* Example grey color */
+}
+.control-button.secondary-button:hover {
+     background-color: #5a6268;
+}
+
 
 .control-button:hover {
     background-color: darken(var(--accent-red), 10%);
@@ -230,6 +281,7 @@ main {
 }
 .control-button i {
     font-size: 1.1em;
+    line-height: 1; /* Prevent icon affecting button height */
 }
 
 /* --- Output Boxes --- */
@@ -240,9 +292,10 @@ main {
     padding: 15px;
     margin-top: 15px;
     min-height: 100px;
-    white-space: pre-wrap; /* Preserve formatting from AI */
-    overflow-x: auto; /* Add scrollbars if content overflows */
-    position: relative; /* For loading indicator */
+    white-space: pre-wrap;
+    overflow-x: auto;
+    position: relative;
+    line-height: 1.6; /* Ensure good readability */
 }
 
 /* Loading Indicator inside output boxes */
@@ -253,18 +306,18 @@ main {
     left: 15px;
     font-style: italic;
     color: #888;
-    display: none; /* Hidden by default */
+    display: none;
 }
 .output-box.loading::after {
-    display: block; /* Show when loading class is added */
+    display: block;
 }
-.output-box.loading > *:not(h3) { /* Hide content while loading, keep headers */
+.output-box.loading > *:not(h3) {
     opacity: 0.3;
 }
 
 /* Specific Output Areas */
 #corrected-text-display, #feedback-display {
-    background-color: #fff; /* White background inside the yellow box */
+    background-color: #fff;
     padding: 10px;
     border-radius: 3px;
     margin-top: 5px;
@@ -276,10 +329,10 @@ main {
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: 500px; /* Adjust height as needed */
+    height: 500px; /* Default height */
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    overflow: hidden; /* Clip children */
+    overflow: hidden;
 }
 
 #chat-box {
@@ -291,122 +344,150 @@ main {
     flex-direction: column;
     gap: 12px;
 }
+/* Scenario chat box uses same styles */
+#scenario-chat-box {
+     flex-grow: 1;
+     overflow-y: auto;
+     padding: 15px;
+     background-color: #fff;
+     display: flex;
+     flex-direction: column;
+     gap: 12px;
+     min-height: 200px; /* Ensure scenario box has some height */
+}
+
 
 .message {
     padding: 10px 15px;
     border-radius: 15px;
     max-width: 75%;
-    word-wrap: break-word; /* Break long words */
+    word-wrap: break-word;
+    line-height: 1.4; /* Improve message readability */
 }
 
 .message.user {
     background-color: var(--primary-yellow);
     color: #333;
     border-bottom-right-radius: 3px;
-    align-self: flex-end; /* Align user messages to the right */
+    align-self: flex-end;
 }
 
 .message.bot {
-    background-color: #e5e5ea; /* Light grey for bot */
+    background-color: #e5e5ea;
     color: var(--text-color);
     border-bottom-left-radius: 3px;
-    align-self: flex-start; /* Align bot messages to the left */
+    align-self: flex-start;
 }
+.message.typing {
+     font-style: italic;
+     color: #888;
+     background-color: transparent;
+}
+
 
 .chat-input-area {
     display: flex;
     padding: 10px;
     border-top: 1px solid var(--border-color);
     background-color: #f9f9f9;
-    /* Align items to the bottom or stretch them */
-    /* Option 1: Align items along their bottom edge */
-     align-items: flex-end;
-    /* Option 2: Stretch items to fill height (might make buttons tall) */
-    /* align-items: stretch; */
-    /* Option 3: Keep center alignment but ensure consistent sizing */
-    /* align-items: center; */
+    align-items: flex-end; /* Align items to bottom by default */
     gap: 10px;
+    flex-wrap: nowrap; /* Prevent wrapping by default */
 }
 
-/* Ensure textarea grows */
-.chat-input-area textarea,
-.chat-input-area input[type="text"] /* Keep styling for main chat input */
- {
-    flex-grow: 1;
+.chat-input-area input[type="text"],
+.chat-input-area textarea {
+    flex-grow: 1; /* Input takes up available space */
     border: 1px solid var(--border-color);
-    border-radius: 15px; /* Or your preferred radius */
+    border-radius: 5px; /* Match other inputs */
     padding: 10px 15px;
-    resize: none; /* Usually disable resize for chat inputs */
+    resize: none;
     font-size: 1em;
-    min-height: 40px; /* Ensure a minimum height */
-    /* For textarea specifically: */
-    max-height: 100px; /* Limit vertical expansion */
-    overflow-y: auto; /* Allow scrolling if needed */
-    line-height: 1.4; /* Adjust line height for textarea */
+    min-height: 40px; /* Match button height */
+    line-height: 1.4;
+    max-height: 100px; /* Limit textarea growth */
+    overflow-y: auto; /* Add scroll if textarea grows */
+}
+/* Textarea specific */
+.chat-input-area textarea {
+     height: auto; /* Allow textarea height to be based on rows */
+     /* rows="2" in HTML sets initial height */
 }
 
 
-/* Styling for the button group wrapper */
 .chat-input-area .button-group {
-    display: flex;      /* Arrange buttons horizontally */
-    align-items: center; /* Vertically align items inside the group */
-    gap: 5px;           /* Space between buttons inside the group */
-    flex-shrink: 0;     /* Prevent the group from shrinking */
+    display: flex;
+    align-items: center; /* Vertically center buttons */
+    gap: 5px;
+    flex-shrink: 0; /* Don't shrink button group */
 }
 
-/* Ensure control buttons within the group have consistent height */
 .chat-input-area .button-group .control-button {
-     height: 40px; /* Match min-height of input/textarea */
-     /* Reset margins if needed */
+     height: 40px;
+     width: 40px; /* Make icon buttons square */
+     padding: 0; /* Remove padding for icon buttons */
+     font-size: 1.1em; /* Adjust icon size if needed */
      margin: 0;
 }
-
-/* Specific adjustments if needed for Scenario input */
-.scenario-input-area textarea {
-    /* Add specific overrides here if needed */
+/* Target Send button specifically if needed */
+#send-chat-button, #send-scenario-chat-button {
+     /* width: auto; */ /* Allow send button to be wider if desired */
+     /* padding: 10px 15px; */
 }
 
+.speech-status-indicator {
+    font-size: 0.8em;
+    color: #666;
+    font-style: italic;
+    min-width: 60px;
+    text-align: center;
+    line-height: 40px; /* Match button height */
+    white-space: nowrap;
+}
+
+
 /* --- Dictionary Specific --- */
-#dict-output strong { /* Highlight labels */
+#dict-output strong {
     color: var(--accent-red);
-    display: block; /* Put labels on new lines */
+    display: block;
     margin-top: 8px;
 }
 #dict-output button.speak-word-button {
-    background: none;
-    border: none;
+    background: none; border: none;
     color: var(--accent-red);
     font-size: 1.3em;
     cursor: pointer;
     margin-left: 10px;
     vertical-align: middle;
+    padding: 0; height: auto; width: auto; /* Reset button styles */
 }
 #dict-output button.speak-word-button:hover {
     color: darken(var(--accent-red), 15%);
 }
 
+/* --- Scenario Specific Adjustments --- */
+#scenario-interaction h3 {
+     margin-bottom: 15px; /* Space below scenario title */
+}
+.scenario-chat-container {
+     height: 400px; /* Give scenario chat a specific height */
+}
 
 /* --- Loading Overlay --- */
 #loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Ensure it's on top */
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    z-index: 1000;
 }
 
 .spinner {
-    border: 5px solid var(--light-yellow); /* Light grey */
-    border-top: 5px solid var(--primary-yellow); /* Blue */
+    border: 5px solid var(--light-yellow);
+    border-top: 5px solid var(--primary-yellow);
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 50px; height: 50px;
     animation: spin 1s linear infinite;
     margin-bottom: 15px;
 }
@@ -421,70 +502,153 @@ main {
     color: var(--text-color);
 }
 
+/* --- Footer Styling --- */
+.page-footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+    width: 100%;
+    border-top: 1px solid var(--border-color);
+}
+
+.footer-credit {
+    font-size: 0.85em;
+    color: #888;
+    margin: 0;
+}
+
+
+/* --- Added Styles for Chat Controls (GLOBAL) --- */
+#toggle-tts-button.muted i {
+    opacity: 0.5;
+}
+#speak-mode-button.active {
+    background-color: var(--accent-red);
+    color: white;
+    box-shadow: 0 0 8px var(--accent-red);
+}
+#speak-mode-button.active i {
+    color: white;
+}
+
+/* Style for Auth Loading Hiding (GLOBAL) */
+body.auth-loading > header > .user-info,
+body.auth-loading > main {
+     visibility: hidden; opacity: 0; transition: none;
+}
+body.auth-loading > #loading-overlay {
+    visibility: visible; opacity: 1;
+}
+
 
 /* --- Responsive --- */
 @media (max-width: 768px) {
+    /* Styles that ONLY apply on smaller screens */
     header {
-        flex-direction: column;
-        gap: 10px;
-        padding: 15px;
+        /* Keep flex-direction row for header on mobile too? Or revert to column? */
+        /* flex-direction: column; */
+        /* gap: 10px; */
+        padding: 10px 15px; /* Reduce padding */
+    }
+    .logo {
+         font-size: 1.6em; /* Slightly smaller logo */
     }
     .user-info {
-        width: 100%;
-        justify-content: space-between;
+        /* width: 100%; */ /* Remove if header stays row */
+        /* justify-content: space-between; */
+         gap: 10px; /* Reduce gap */
     }
+    #user-email {
+         max-width: 120px; /* Adjust max width */
+    }
+    #sign-out-button {
+         padding: 6px 10px; /* Smaller button */
+    }
+
     main {
         padding: 15px;
     }
     .feature-nav {
         justify-content: center;
+        gap: 8px; /* Slightly smaller gap */
     }
     .feature-button {
-        font-size: 0.9em;
-        padding: 10px 15px;
+        font-size: 0.85em; /* Smaller nav buttons */
+        padding: 8px 12px;
     }
+    .feature-display {
+        padding: 15px; /* Reduce padding */
+    }
+     .feature-content h2 {
+          font-size: 1.3em; /* Smaller headings */
+     }
+
+
     .controls {
         flex-direction: column;
-        align-items: stretch; /* Make controls take full width */
+        align-items: stretch;
+        gap: 10px; /* Reduce gap */
+    }
+    .controls label {
+         margin-bottom: 3px;
     }
     .controls input[type="text"],
     .controls select,
-    .controls button {
-        width: 100%; /* Full width on small screens */
+    .controls textarea,
+    .controls button.control-button {
+        width: 100%;
+        font-size: 0.95em; /* Slightly smaller inputs */
     }
+    .controls textarea {
+         min-height: 70px; /* Adjust textarea height */
+    }
+
+
     .chat-container {
-        height: 400px; /* Adjust for smaller screens */
+        /* Dynamic height based on viewport minus estimated header/footer/nav */
+        height: calc(100vh - 280px); /* Adjust this value based on testing */
+        min-height: 300px;
+    }
+    .scenario-chat-container {
+         height: 350px; /* Adjust scenario height if needed */
     }
 
-    /* --- Added Styles for Chat Controls --- */
 
-/* Style for TTS Toggle Button when muted */
-#toggle-tts-button.muted i {
-    opacity: 0.5; /* Make the icon slightly faded when muted */
-}
+    /* Chat Input Area on Mobile */
+    .chat-input-area {
+        flex-wrap: wrap; /* Allow wrapping */
+        align-items: center; /* Center items when wrapped */
+        padding: 8px; /* Reduce padding */
+        gap: 8px;
+    }
+    .chat-input-area input[type="text"],
+    .chat-input-area textarea {
+         min-width: 0;
+         flex-basis: 100%; /* Input takes full width */
+         order: 1; /* Make input appear first */
+         margin-bottom: 8px; /* Space below input when buttons wrap */
+         height: 38px; /* Match slightly smaller buttons */
+         min-height: 38px;
+    }
+     .chat-input-area textarea {
+          max-height: 80px; /* Limit textarea growth on mobile */
+     }
 
-/* Style for STT Speak Button when actively listening */
-#speak-mode-button.listening {
-    background-color: var(--accent-red); /* Use accent red for active listening */
-    color: white;
-    box-shadow: 0 0 8px var(--accent-red); /* Optional glow effect */
-}
-/* Ensure icon inside listening button is visible */
-#speak-mode-button.listening i {
-    color: white;
-}
+    .chat-input-area .button-group {
+        flex-grow: 1; /* Button group takes remaining space */
+        order: 2; /* Make buttons appear after input */
+        justify-content: space-around; /* Distribute buttons evenly */
+        width: 100%; /* Ensure group takes width when wrapped */
+    }
+     .chat-input-area .button-group .control-button {
+          height: 38px; /* Slightly smaller buttons */
+          width: 38px;
+          font-size: 1em;
+     }
+     /* Hide speech status text on mobile */
+     .speech-status-indicator {
+          display: none;
+     }
 
-/* Style for Auth Loading Hiding */
-/* Initially hide main content areas until auth state is known */
-body.auth-loading > header > .user-info,
-body.auth-loading > main {
-     visibility: hidden;
-     opacity: 0;
-     transition: none; /* Prevent transition during initial hide */
-}
-/* Ensure loading overlay is visible during auth loading */
-body.auth-loading > #loading-overlay {
-    visibility: visible;
-    opacity: 1;
-}
-}
+
+} /* --- End of @media block --- */
