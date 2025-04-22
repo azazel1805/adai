@@ -314,27 +314,57 @@ main {
 }
 
 .chat-input-area {
-  display: flex;
-  flex-direction: column; /* Stack children (input and button-group) vertically */
-  gap: 8px; /* Space between input and button group */
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid var(--border-color);
+    background-color: #f9f9f9;
+    /* Align items to the bottom or stretch them */
+    /* Option 1: Align items along their bottom edge */
+     align-items: flex-end;
+    /* Option 2: Stretch items to fill height (might make buttons tall) */
+    /* align-items: stretch; */
+    /* Option 3: Keep center alignment but ensure consistent sizing */
+    /* align-items: center; */
+    gap: 10px;
 }
 
-#chat-input {
-   width: 100%; /* Ensure input takes full width */
-   box-sizing: border-box;
-    padding: 15px 15px;
-    resize: none;
+/* Ensure textarea grows */
+.chat-input-area textarea,
+.chat-input-area input[type="text"] /* Keep styling for main chat input */
+ {
+    flex-grow: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 15px; /* Or your preferred radius */
+    padding: 10px 15px;
+    resize: none; /* Usually disable resize for chat inputs */
     font-size: 1em;
-    max-height: 80px;
-    overflow-y: auto;
+    min-height: 40px; /* Ensure a minimum height */
+    /* For textarea specifically: */
+    max-height: 100px; /* Limit vertical expansion */
+    overflow-y: auto; /* Allow scrolling if needed */
+    line-height: 1.4; /* Adjust line height for textarea */
 }
 
-.button-group {
-   display: flex; /* Arrange buttons horizontally */
-   gap: 5px; /* Space between buttons */
-   align-items: center; /* Vertically align buttons/span */
+
+/* Styling for the button group wrapper */
+.chat-input-area .button-group {
+    display: flex;      /* Arrange buttons horizontally */
+    align-items: center; /* Vertically align items inside the group */
+    gap: 5px;           /* Space between buttons inside the group */
+    flex-shrink: 0;     /* Prevent the group from shrinking */
 }
 
+/* Ensure control buttons within the group have consistent height */
+.chat-input-area .button-group .control-button {
+     height: 40px; /* Match min-height of input/textarea */
+     /* Reset margins if needed */
+     margin: 0;
+}
+
+/* Specific adjustments if needed for Scenario input */
+.scenario-input-area textarea {
+    /* Add specific overrides here if needed */
+}
 
 /* --- Dictionary Specific --- */
 #dict-output strong { /* Highlight labels */
