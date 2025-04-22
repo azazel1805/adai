@@ -179,9 +179,10 @@
              </div>
 
              
-             <div id="scenario" class="feature-content">
+              <div id="scenario" class="feature-content">
                  <h2><i class="fas fa-theater-masks"></i> Scenario Practice</h2>
                  <div id="scenario-setup">
+                     <!-- ... scenario setup controls ... -->
                      <div class="controls">
                           <label for="scenario-description">Describe the Scenario:</label>
                           <textarea id="scenario-description" rows="4" placeholder="Example: I am at a job interview for a software engineer position. Ada is the interviewer."></textarea>
@@ -189,24 +190,27 @@
                       <div class="controls">
                            <button id="start-scenario-button" class="control-button"><i class="fas fa-play"></i> Start Scenario</button>
                       </div>
-                      <p><em>Describe the situation and clearly state the role Ada should play. For example: "Ordering food at a cafe, Ada is the barista", "Asking for directions to the nearest museum in Izmir, Ada is a local person", "Job interview for a marketing manager role, Ada is the hiring manager".</em></p>
+                      <p><em>Describe the situation and clearly state the role Ada should play...</em></p>
                  </div>
                  <div id="scenario-interaction" style="display: none;">
                      <h3 id="scenario-title-display">Scenario: </h3>
                      <div class="chat-container scenario-chat-container">
                          <div id="scenario-chat-box"></div>
+                         {/* --- Modified Input Area --- */}
                          <div class="chat-input-area scenario-input-area">
-                              
-                              <input type="text" id="scenario-chat-input" placeholder="Type your response...">
-                              <div class="button-group"> 
+                              {/* CHANGE THIS BACK TO TEXTAREA */}
+                              <textarea id="scenario-chat-input" placeholder="Type your response..." rows="2"></textarea>
+                              <div class="button-group">
                                  <button id="send-scenario-chat-button" class="control-button"><i class="fas fa-paper-plane"></i> Send</button>
-                                 
+                                 {/* Only Send button needed here, other controls are global */}
                              </div>
                          </div>
+                         {/* --- End Modified Input Area --- */}
                      </div>
                      <button id="reset-scenario-button" class="control-button secondary-button" style="margin-top: 15px;"><i class="fas fa-undo"></i> New Scenario</button>
                  </div>
              </div>
+             <!-- END NEW SCENARIO SECTION -->
             
 
         </div> <!-- End feature-display -->
