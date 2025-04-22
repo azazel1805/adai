@@ -325,8 +325,8 @@ main {
 #chat-input {
     flex-grow: 1;
     border: 1px solid var(--border-color);
-    border-radius: 15px;
-    padding: 10px 10px; /* Reduced horizontal padding */
+    border-radius: 10px;
+    padding: 10px 5px; /* Reduced horizontal padding */
     resize: none;
     font-size: 1em;
     max-height: 80px;
@@ -338,8 +338,8 @@ main {
 
 #send-chat-button, #speak-mode-button {
     flex-shrink: 0; /* Prevent buttons from shrinking */
-    height: 40px; /* Match input height roughly */
-    width: 50px;
+    height: 30px; /* Match input height roughly */
+    width: 40px;
     font-size: 1.2em;
 }
 #speak-mode-button.active {
