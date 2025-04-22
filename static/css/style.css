@@ -318,7 +318,7 @@ main {
     padding: 10px;
     border-top: 1px solid var(--border-color);
     background-color: #f9f9f9;
-     /* Align items vertically */
+    align-items: center; /* Align items vertically */
     gap: 10px;
 }
 
@@ -326,7 +326,7 @@ main {
     flex-grow: 1;
     border: 1px solid var(--border-color);
     border-radius: 15px;
-    padding: 10px 15px; /* Reduced horizontal padding */
+    padding: 10px 40px; /* Reduced horizontal padding */
     resize: none;
     font-size: 1em;
     max-height: 80px;
