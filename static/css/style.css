@@ -314,45 +314,20 @@ main {
 }
 
 .chat-input-area {
-    display: flex;
-    padding: 10px;
-    border-top: 1px solid var(--border-color);
-    background-color: #f9f9f9;
-    align-items: center; /* Align items vertically */
-    gap: 10px;
+  display: flex;
+  flex-direction: column; /* Stack children (input and button-group) vertically */
+  gap: 8px; /* Space between input and button group */
 }
 
 #chat-input {
-    flex-grow: 1;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 10px 5px; /* Reduced horizontal padding */
-    resize: none;
-    font-size: 1em;
-    max-height: 80px;
-    overflow-y: auto;
-    /* Ensure default text wrapping */
-    white-space: pre-wrap; /* Usually the default for textarea, but good to be explicit */
-    word-wrap: break-word; /* Also often default, ensures long words break */
+   width: 100%; /* Ensure input takes full width */
+   box-sizing: border-box;
 }
 
-#send-chat-button, #speak-mode-button {
-    flex-shrink: 0; /* Prevent buttons from shrinking */
-    height: 30px; /* Match input height roughly */
-    width: 40px;
-    font-size: 1.2em;
-}
-#speak-mode-button.active {
-    background-color: var(--accent-red);
-    color: white;
-    box-shadow: 0 0 10px var(--accent-red);
-}
-.speech-status-indicator {
-    font-size: 0.8em;
-    color: #666;
-    font-style: italic;
-    min-width: 60px; /* Reserve space */
-    text-align: center;
+.button-group {
+   display: flex; /* Arrange buttons horizontally */
+   gap: 5px; /* Space between buttons */
+   align-items: center; /* Vertically align buttons/span */
 }
 
 
