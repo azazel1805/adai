@@ -273,15 +273,55 @@ def elevenlabs_tts():
 
 @app.route('/api/paraphrase', methods=['POST'])
 def api_paraphrase():
-     user_info = verify_firebase_token(request); # ... auth check ...
-     data = request.json; # ... data validation ...
-     original_text = data.get('text'); style = data.get('style', 'simpler'); # ... get params ...
-     allowed_styles = ["simpler", "formal", "informal", "creative", "complex"]; # ... style validation ...
-     if style not in allowed_styles: style = 'simpler'
-     prompt = f"""Instructions:\nRephrase text per style... Original Text:\n---\n{original_text}\n---\n\nRephrased Text:\n"""
-     rephrased_text_result = generate_gemini_response(prompt)
-     if isinstance(rephrased_text_result, dict) and 'error' in rephrased_text_result: return jsonify({"rephrased_text": f"Error: {rephrased_text_result['error']}"}), 500
-     return jsonify({"rephrased_text": rephrased_text_result})
+    # --- Verify Auth Token ---
+    user_info = verify_firebase_token(request)
+    if user_info is None:
+        return jsonify({"error": "Unauthorized: Missing or invalid token"}), 401
+    # --- --- --- --- --- ---
+
+    data = request.json
+    if not data: return jsonify({"error": "Invalid JSON payload"}), 400
+
+    original_text = data.get('text')
+    style = data.get('style', 'simpler') # Default to 'simpler' if not provided
+
+    if not original_text or not isinstance(original_text, str):
+        return jsonify({"error": "Text to rephrase is required"}), 400
+
+    # Validate style (optional but good practice)
+    allowed_styles = ["simpler", "formal", "informal", "creative", "complex"]
+    if style not in allowed_styles:
+         print(f"Warning: Invalid paraphrase style '{style}' received. Defaulting to 'simpler'.")
+         style = 'simpler'
+
+    print(f"Paraphrase request received. Style: {style}. Text: {original_text[:100]}...")
+
+    # Craft the prompt for Gemini
+    prompt = f"""
+Instructions:
+Rephrase the following text according to the specified style.
+Capture the core meaning but use unique phrasing.
+Output *only* the rephrased text.
+
+Style: {style}
+
+Original Text:
+---
+{original_text}
+---
+
+Rephrased Text:
+"""
+
+    rephrased_text_result = generate_gemini_response(prompt)
+
+    # Check if the helper returned an error object
+    if isinstance(rephrased_text_result, dict) and 'error' in rephrased_text_result:
+        print(f"Error during paraphrasing: {rephrased_text_result['error']}")
+        return jsonify({"rephrased_text": f"Error: {rephrased_text_result['error']}"}), 500
+
+    print(f"Paraphrasing successful. Result: {rephrased_text_result[:100]}...")
+    return jsonify({"rephrased_text": rephrased_text_result})
 
 
 # --- START NEW SCENARIO CHAT ROUTE ---
