@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
              else if (contentType && contentType.includes("audio/mpeg")) { return await response.blob(); }
              else { console.warn("Received unexpected content type:", contentType); return await response.text(); }
         } catch (error) {
+            // Avoid double logging if handled above
             if (!error.message.includes("API Error")) {
                  console.error(`Network or processing error calling ${endpoint}:`, error);
                  alert(`Network or processing error: ${error.message}`);
@@ -133,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- TTS Toggle State & Button Logic ---
-    let isTtsEnabled = localStorage.getItem('isTtsEnabled') !== 'false'; // Default to true if not set
+    let isTtsEnabled = localStorage.getItem('isTtsEnabled') !== 'false'; // Default to true
     const toggleTtsButton = document.getElementById('toggle-tts-button');
     const ttsIcon = toggleTtsButton ? toggleTtsButton.querySelector('i') : null;
     function updateTtsButtonState() {
@@ -154,14 +155,14 @@ document.addEventListener('DOMContentLoaded', () => {
             isTtsEnabled = !isTtsEnabled;
             localStorage.setItem('isTtsEnabled', isTtsEnabled);
             updateTtsButtonState();
-            if (!isTtsEnabled && typeof synth !== 'undefined' && synth.speaking) { synth.cancel(); } // Stop speech if muted
+            if (!isTtsEnabled && typeof synth !== 'undefined' && synth.speaking) { synth.cancel(); }
         });
     } else { console.warn("Toggle TTS Button not found."); }
 
 
-     // --- Chatbot ---
+     // --- Chatbot (General) ---
     const chatBox = document.getElementById('chat-box');
-    const chatInput = document.getElementById('chat-input');
+    const chatInput = document.getElementById('chat-input'); // input[type=text]
     const sendChatButton = document.getElementById('send-chat-button');
     const speakModeButton = document.getElementById('speak-mode-button');
     const speechStatus = document.getElementById('speech-status');
@@ -171,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initializeChat() {
         const initialBotMessage = "Hi! I'm Ada. How can I help you practice English today?";
-        if (chatBox && chatBox.querySelectorAll('.message').length === 0) { // Add only if chatbox is empty
+        if (chatBox && chatBox.querySelectorAll('.message').length === 0) {
              addChatMessage('bot', initialBotMessage);
         }
          chatHistory = chatBox ? Array.from(chatBox.querySelectorAll('.message')).map(div => ({
@@ -179,40 +180,38 @@ document.addEventListener('DOMContentLoaded', () => {
               text: div.textContent
           })) : [];
     }
-    initializeChat(); // Set up chat history
+    initializeChat();
 
 
     // Web Speech API - Speech Synthesis (TTS)
     const synth = window.speechSynthesis;
     let britVoice = null;
     function loadVoices() {
-        if (typeof synth === 'undefined') return; // Safety check
+        if (typeof synth === 'undefined') return;
         const voices = synth.getVoices();
         britVoice = voices.find(voice => voice.lang === 'en-GB' && voice.name.includes('Google')) ||
                    voices.find(voice => voice.lang === 'en-GB');
     }
-    if (typeof synth !== 'undefined' && synth.onvoiceschanged !== undefined) { synth.onvoiceschanged = loadVoices; } loadVoices();
+    if (typeof synth !== 'undefined') {
+        if (synth.onvoiceschanged !== undefined) { synth.onvoiceschanged = loadVoices; }
+        loadVoices();
+    }
 
     function speakText(text, useElevenLabs = true) {
         if (!isTtsEnabled || !text || typeof text !== 'string') return;
         if (typeof synth !== 'undefined') synth.cancel();
-
-        // NOTE: Client-side check for ELEVENLABS_API_KEY is just indicative.
-        // The actual check happens on the backend. We assume it *might* be configured.
         if (useElevenLabs) {
-             console.log("Calling backend for ElevenLabs TTS...");
              callApi('/api/elevenlabs_tts', { text: text }).then(audioBlob => {
                  if (audioBlob instanceof Blob) {
-                     const audioUrl = URL.createObjectURL(audioBlob);
-                     const audio = new Audio(audioUrl);
-                     if (!isTtsEnabled) { URL.revokeObjectURL(audioUrl); return; } // Re-check
+                     const audioUrl = URL.createObjectURL(audioBlob); const audio = new Audio(audioUrl);
+                     if (!isTtsEnabled) { URL.revokeObjectURL(audioUrl); return; }
                      audio.play().catch(e => { console.error("Error playing ElevenLabs audio:", e); speakText(text, false); });
                      audio.onended = () => URL.revokeObjectURL(audioUrl);
-                 } else { console.warn("ElevenLabs call did not return Blob, falling back."); speakText(text, false); }
-             }).catch(e => { console.error("Error in ElevenLabs API call promise:", e); speakText(text, false); });
+                 } else { console.warn("ElevenLabs call failed/no Blob, falling back."); speakText(text, false); }
+             }).catch(e => { console.error("Error fetching ElevenLabs audio:", e); speakText(text, false); });
         } else {
              console.log("Using Web Speech API TTS...");
-             speakUtterance(text); // Fallback to browser voice
+             speakUtterance(text);
         }
     }
 
@@ -232,226 +231,173 @@ document.addEventListener('DOMContentLoaded', () => {
     // Web Speech API - Speech Recognition (STT)
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
-        try { // Wrap initialization in try-catch
+        try {
              recognition = new SpeechRecognition();
              recognition.continuous = false; recognition.lang = 'en-US'; recognition.interimResults = false; recognition.maxAlternatives = 1;
-             recognition.onresult = (event) => { /* ... */ if(chatInput) chatInput.value = event.results[event.results.length - 1][0].transcript.trim(); if(speechStatus) speechStatus.textContent = 'Ready'; if(speakModeButton) speakModeButton.classList.remove('active'); isSpeakMode = false; };
-             recognition.onspeechend = () => { recognition.stop(); if(speechStatus) speechStatus.textContent = 'Processing...'; };
+             recognition.onresult = (event) => { const transcript = event.results[event.results.length - 1][0].transcript.trim(); if(chatInput) chatInput.value = transcript; if(speechStatus) speechStatus.textContent = 'Ready'; if(speakModeButton) speakModeButton.classList.remove('active'); isSpeakMode = false; };
+             recognition.onspeechend = () => { if (isSpeakMode) { recognition.stop(); } if(speechStatus) speechStatus.textContent = 'Processing...'; };
              recognition.onnomatch = (event) => { if(speechStatus) speechStatus.textContent = 'No match'; if(speakModeButton) speakModeButton.classList.remove('active'); isSpeakMode = false; };
-             recognition.onerror = (event) => { /* ... error handling ... */ console.error('Speech recognition error:', event.error, event.message); if(speechStatus) speechStatus.textContent = `Error: ${event.error}`; if(speakModeButton) speakModeButton.classList.remove('active'); isSpeakMode = false; if (event.error === 'not-allowed' || event.error === 'service-not-allowed') { alert("Microphone access denied."); } else { /* alert(`Speech recognition error: ${event.error}`); */ } };
+             recognition.onerror = (event) => { console.error('STT error:', event.error, event.message); if(speechStatus) speechStatus.textContent = `Error: ${event.error}`; if(speakModeButton) speakModeButton.classList.remove('active'); isSpeakMode = false; if (event.error === 'not-allowed' || event.error === 'service-not-allowed') { alert("Mic access denied."); } };
              recognition.onstart = () => { if(speechStatus) speechStatus.textContent = 'Listening...'; };
-             recognition.onend = () => { if(speakModeButton) speakModeButton.classList.remove('active'); isSpeakMode = false; };
-        } catch (sttError) {
-             console.error("Failed to initialize SpeechRecognition:", sttError);
-             recognition = null; // Ensure recognition is null if init fails
-             if(speakModeButton) speakModeButton.disabled = true; if(speechStatus) speechStatus.textContent = 'STT Error';
-        }
-    } else { console.warn("Speech Recognition not supported."); if(speakModeButton) speakModeButton.disabled = true; if(speechStatus) speechStatus.textContent = 'STT N/A'; }
+             recognition.onend = () => { if(speakModeButton) speakModeButton.classList.remove('active'); isSpeakMode = false; if (speechStatus && speechStatus.textContent === 'Listening...') { speechStatus.textContent = ''; } console.log("STT ended."); };
+        } catch (sttError) { console.error("Failed to initialize STT:", sttError); recognition = null; if(speakModeButton) speakModeButton.disabled = true; if(speechStatus) speechStatus.textContent = 'STT Error'; }
+    } else { console.warn("STT not supported."); if(speakModeButton) speakModeButton.disabled = true; if(speechStatus) speechStatus.textContent = 'STT N/A'; }
 
+    // STT Button Listener
     if(speakModeButton) {
         speakModeButton.addEventListener('click', () => {
-            if (!recognition) { alert("Speech input is not available or failed to initialize."); return; } // Check if initialized
+            if (!recognition) { alert("Speech input not available."); return; }
             if (isSpeakMode) { recognition.stop(); }
-            else { try { recognition.start(); speakModeButton.classList.add('active'); isSpeakMode = true; } catch (e) { console.error("Error starting STT:", e); alert(`Could not start listening: ${e.message}`); } }
+            else { try { recognition.start(); speakModeButton.classList.add('active'); isSpeakMode = true; } catch (e) { console.error("Error starting STT:", e); if (e.name !== 'InvalidStateError') { alert(`Could not start listening: ${e.message}`); } if(speakModeButton) speakModeButton.classList.remove('active'); isSpeakMode = false; } }
         });
     } else { console.warn("Speak Mode Button not found."); }
 
 
+    // --- Chatbot Message Sending Logic ---
     function addChatMessage(sender, text) {
-        if (!chatBox) return;
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message', sender);
-        messageDiv.textContent = text;
-        chatBox.appendChild(messageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        chatHistory.push({ sender, text });
+        if (!chatBox) return; const messageDiv = document.createElement('div'); messageDiv.classList.add('message', sender); messageDiv.textContent = text; chatBox.appendChild(messageDiv); chatBox.scrollTop = chatBox.scrollHeight; chatHistory.push({ sender, text });
     }
 
     async function sendChatMessage() {
-        console.log("sendChatMessage function started.");
-        if (!chatInput || !sendChatButton) { console.error("Input or Button missing in sendChatMessage."); return; }
-        if (!auth.currentUser) { console.error("sendChatMessage called but no user signed in."); alert("Error: Not signed in."); return; }
-        const messageText = chatInput.value.trim();
-        if (!messageText) { console.log("Empty message."); return; }
-        console.log("Attempting to send message:", messageText);
-        addChatMessage('user', messageText);
-        const currentMessage = messageText;
-        chatInput.value = '';
-        chatInput.disabled = true; sendChatButton.disabled = true;
-        const typingIndicator = document.createElement('div');
-        typingIndicator.classList.add('message', 'bot', 'typing');
-        typingIndicator.textContent = 'Ada is typing...';
-        if(chatBox) { chatBox.appendChild(typingIndicator); chatBox.scrollTop = chatBox.scrollHeight; }
-        const historyForApi = chatHistory.slice(0, -1).slice(-6);
-        let botReplyText = null;
+        console.log("sendChatMessage started.");
+        if (!chatInput || !sendChatButton) { return; } if (!auth.currentUser) { return; }
+        const messageText = chatInput.value.trim(); if (!messageText) { return; }
+        addChatMessage('user', messageText); const currentMessage = messageText; chatInput.value = ''; chatInput.disabled = true; sendChatButton.disabled = true;
+        const typingIndicator = document.createElement('div'); typingIndicator.classList.add('message', 'bot', 'typing'); typingIndicator.textContent = 'Ada is typing...'; if(chatBox) { chatBox.appendChild(typingIndicator); chatBox.scrollTop = chatBox.scrollHeight; }
+        const historyForApi = chatHistory.slice(0, -1).slice(-6); let botReplyText = null;
         try {
-            console.log("Calling API for chat response...");
             const response = await callApi('/api/chat', { message: currentMessage, history: historyForApi });
-            console.log("API call finished.");
             if (response && response.reply) { botReplyText = response.reply; addChatMessage('bot', botReplyText); }
-            else { console.log("No valid reply from API."); addChatMessage('bot', 'Sorry, I couldn\'t get a response.'); }
-        } catch (error) { console.error("Error during /api/chat call processing:", error); addChatMessage('bot', 'An error occurred while getting my reply.'); }
-        finally {
-            console.log("Entering finally block.");
-            if(chatBox && chatBox.contains(typingIndicator)) { chatBox.removeChild(typingIndicator); }
-            chatInput.disabled = false; sendChatButton.disabled = false;
-            console.log("Chat input re-enabled.");
-            chatInput.focus();
-        }
-        if (botReplyText) {
-            try { console.log("Attempting to speak bot reply..."); speakText(botReplyText, true); }
-            catch (ttsError) { console.error("Error initiating TTS:", ttsError); }
-        } else { console.log("No bot reply text to speak."); }
-        console.log("sendChatMessage function finished.");
+            else { addChatMessage('bot', 'Sorry, I couldn\'t get a response.'); }
+        } catch (error) { console.error("Error processing /api/chat call:", error); addChatMessage('bot', 'An error occurred.'); }
+        finally { if(chatBox && chatBox.contains(typingIndicator)) { chatBox.removeChild(typingIndicator); } chatInput.disabled = false; sendChatButton.disabled = false; chatInput.focus(); console.log("Chat input re-enabled."); }
+        if (botReplyText) { try { speakText(botReplyText, true); } catch (ttsError) { console.error("Error initiating TTS:", ttsError); } }
+        console.log("sendChatMessage finished.");
     }
     if(sendChatButton) sendChatButton.addEventListener('click', sendChatMessage);
     if(chatInput) chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } });
 
     // --- Text Generator ---
-    const textGenLevel = document.getElementById('text-gen-level');
-    const textGenTopic = document.getElementById('text-gen-topic');
-    const generateTextButton = document.getElementById('generate-text-button');
-    const textGenOutput = document.getElementById('text-gen-output');
-    if(generateTextButton) {
-        generateTextButton.addEventListener('click', async () => { /* ... keep existing logic ... */
-            const level = textGenLevel ? textGenLevel.value : 'encounter';
-            const topic = textGenTopic ? textGenTopic.value.trim() : '';
-            if (!topic) { alert('Please enter a topic.'); return; }
-            if(textGenOutput) textGenOutput.textContent = ''; showOutputLoading('text-gen-output', true);
-            const response = await callApi('/api/generate_text', { level, topic });
-            showOutputLoading('text-gen-output', false);
-            if(textGenOutput) textGenOutput.textContent = (response && response.generated_text) ? response.generated_text : 'Error generating text.';
-        });
-    } else { console.warn("Generate Text Button not found."); }
-
+    const textGenLevel = document.getElementById('text-gen-level'); const textGenTopic = document.getElementById('text-gen-topic'); const generateTextButton = document.getElementById('generate-text-button'); const textGenOutput = document.getElementById('text-gen-output');
+    if(generateTextButton) { generateTextButton.addEventListener('click', async () => { const level = textGenLevel?.value || 'encounter'; const topic = textGenTopic?.value.trim() || ''; if (!topic) { alert('Please enter topic.'); return; } if(textGenOutput) textGenOutput.textContent = ''; showOutputLoading('text-gen-output', true); const response = await callApi('/api/generate_text', { level, topic }); showOutputLoading('text-gen-output', false); if(textGenOutput) textGenOutput.textContent = (response?.generated_text) || 'Error generating text.'; }); } else { console.warn("Generate Text Button not found."); }
 
     // --- Dictionary ---
-    const dictWordInput = document.getElementById('dict-word');
-    const lookupWordButton = document.getElementById('lookup-word-button');
-    const dictOutput = document.getElementById('dict-output');
-    function renderDictionaryResult(details, word) { /* ... keep existing logic ... */
-         if (!dictOutput) return; dictOutput.innerHTML = '';
-         if (details.toLowerCase().includes("not found") || details.toLowerCase().includes("nonsensical")) { dictOutput.textContent = `Could not find info for "${word}".`; return; }
-         const header = document.createElement('h4'); header.textContent = word.charAt(0).toUpperCase() + word.slice(1) + ' ';
-         const speakButton = document.createElement('button'); speakButton.innerHTML = '<i class="fas fa-volume-up"></i>'; speakButton.classList.add('speak-word-button'); speakButton.title = `Speak "${word}"`;
-         speakButton.onclick = () => { speakText(word, false); };
-         header.appendChild(speakButton); dictOutput.appendChild(header);
-         const detailsDiv = document.createElement('div');
-         detailsDiv.innerHTML = details.replace(/</g, "<").replace(/>/g, ">").replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/(\n\d+\.\s)/g, '<br>$1').replace(/\n/g, '<br>');
-         dictOutput.appendChild(detailsDiv);
-    }
-    if(lookupWordButton) {
-        lookupWordButton.addEventListener('click', async () => { /* ... keep existing logic ... */
-            const word = dictWordInput ? dictWordInput.value.trim() : '';
-            if (!word) { alert('Please enter a word.'); return; }
-            if(dictOutput) dictOutput.innerHTML = ''; showOutputLoading('dict-output', true);
-            const response = await callApi('/api/dictionary', { word });
-            showOutputLoading('dict-output', false);
-            if (response && response.details) { renderDictionaryResult(response.details, word); }
-            else if(dictOutput) { dictOutput.textContent = 'Error looking up word.'; }
-        });
-    } else { console.warn("Lookup Word Button not found."); }
+    const dictWordInput = document.getElementById('dict-word'); const lookupWordButton = document.getElementById('lookup-word-button'); const dictOutput = document.getElementById('dict-output');
+    function renderDictionaryResult(details, word) { /* ... same rendering logic ... */ if (!dictOutput) return; dictOutput.innerHTML = ''; if (!details || details.toLowerCase().includes("not found") || details.toLowerCase().includes("nonsensical")) { dictOutput.textContent = `Could not find info for "${word}".`; return; } const header = document.createElement('h4'); header.textContent = word.charAt(0).toUpperCase() + word.slice(1) + ' '; const speakButton = document.createElement('button'); speakButton.innerHTML = '<i class="fas fa-volume-up"></i>'; speakButton.classList.add('speak-word-button'); speakButton.title = `Speak "${word}"`; speakButton.onclick = () => { speakText(word, false); }; header.appendChild(speakButton); dictOutput.appendChild(header); const detailsDiv = document.createElement('div'); detailsDiv.innerHTML = details.replace(/</g, "<").replace(/>/g, ">").replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/(\r\n|\r|\n){2,}/g, '<br><br>').replace(/(\r\n|\r|\n)/g, '<br>'); dictOutput.appendChild(detailsDiv); }
+    if(lookupWordButton) { lookupWordButton.addEventListener('click', async () => { const word = dictWordInput?.value.trim() || ''; if (!word) { alert('Please enter word.'); return; } if(dictOutput) dictOutput.innerHTML = ''; showOutputLoading('dict-output', true); const response = await callApi('/api/dictionary', { word }); showOutputLoading('dict-output', false); if (response?.details) { renderDictionaryResult(response.details, word); } else if(dictOutput) { dictOutput.textContent = 'Error looking up word.'; } }); } else { console.warn("Lookup Button not found."); }
     if(dictWordInput) dictWordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && lookupWordButton) { lookupWordButton.click(); } });
 
-
     // --- Text Corrector ---
-    const correctorInput = document.getElementById('corrector-input');
-    const correctTextButton = document.getElementById('correct-text-button');
-    const correctedTextDisplay = document.getElementById('corrected-text-display');
-    const feedbackDisplay = document.getElementById('feedback-display');
-    if(correctTextButton) {
-        correctTextButton.addEventListener('click', async () => { /* ... keep existing logic ... */
-            const text = correctorInput ? correctorInput.value.trim() : '';
-            if (!text) { alert('Please enter text to correct.'); return; }
-            if(correctedTextDisplay) correctedTextDisplay.textContent = ''; if(feedbackDisplay) feedbackDisplay.textContent = '';
-            showOutputLoading('corrector-output', true);
-            const response = await callApi('/api/correct_text', { text });
-            showOutputLoading('corrector-output', false);
-            if (response) {
-                if(correctedTextDisplay) correctedTextDisplay.textContent = response.corrected_text || "No correction provided.";
-                if(feedbackDisplay) feedbackDisplay.innerHTML = response.feedback ? response.feedback.replace(/\n/g, '<br>') : "No feedback provided.";
-            } else { if(correctedTextDisplay) correctedTextDisplay.textContent = 'Error correcting text.'; }
-        });
-    } else { console.warn("Correct Text Button not found."); }
-
+    const correctorInput = document.getElementById('corrector-input'); const correctTextButton = document.getElementById('correct-text-button'); const correctedTextDisplay = document.getElementById('corrected-text-display'); const feedbackDisplay = document.getElementById('feedback-display');
+    if(correctTextButton) { correctTextButton.addEventListener('click', async () => { const text = correctorInput?.value.trim() || ''; if (!text) { alert('Please enter text.'); return; } if(correctedTextDisplay) correctedTextDisplay.textContent = ''; if(feedbackDisplay) feedbackDisplay.textContent = ''; showOutputLoading('corrector-output', true); const response = await callApi('/api/correct_text', { text }); showOutputLoading('corrector-output', false); if (response) { if(correctedTextDisplay) correctedTextDisplay.textContent = response.corrected_text || "No correction."; if(feedbackDisplay) feedbackDisplay.innerHTML = response.feedback ? response.feedback.replace(/\n/g, '<br>') : "No feedback."; } else { if(correctedTextDisplay) correctedTextDisplay.textContent = 'Error.'; } }); } else { console.warn("Correct Text Button not found."); }
 
     // --- Grammar Aid ---
-    const grammarTopicInput = document.getElementById('grammar-topic');
-    const explainGrammarButton = document.getElementById('explain-grammar-button');
-    const grammarOutput = document.getElementById('grammar-output');
-    if(explainGrammarButton) {
-        explainGrammarButton.addEventListener('click', async () => { /* ... keep existing logic ... */
-            const topic = grammarTopicInput ? grammarTopicInput.value.trim() : '';
-            if (!topic) { alert('Please enter a grammar topic.'); return; }
-            if(grammarOutput) grammarOutput.textContent = ''; showOutputLoading('grammar-output', true);
-            const response = await callApi('/api/grammar_aid', { topic });
-            showOutputLoading('grammar-output', false);
-            if(grammarOutput) grammarOutput.innerHTML = (response && response.explanation) ? response.explanation.replace(/\n/g, '<br>') : 'Error explaining grammar topic.';
-        });
-    } else { console.warn("Explain Grammar Button not found."); }
+    const grammarTopicInput = document.getElementById('grammar-topic'); const explainGrammarButton = document.getElementById('explain-grammar-button'); const grammarOutput = document.getElementById('grammar-output');
+    if(explainGrammarButton) { explainGrammarButton.addEventListener('click', async () => { const topic = grammarTopicInput?.value.trim() || ''; if (!topic) { alert('Please enter topic.'); return; } if(grammarOutput) grammarOutput.textContent = ''; showOutputLoading('grammar-output', true); const response = await callApi('/api/grammar_aid', { topic }); showOutputLoading('grammar-output', false); if(grammarOutput) grammarOutput.innerHTML = (response?.explanation) ? response.explanation.replace(/\n/g, '<br>') : 'Error explaining topic.'; }); } else { console.warn("Explain Grammar Button not found."); }
     if(grammarTopicInput) grammarTopicInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && explainGrammarButton) { explainGrammarButton.click(); } });
 
-
     // --- Essay Helper ---
-    const essayTopicInput = document.getElementById('essay-topic');
-    const essayTypeSelect = document.getElementById('essay-type');
-    const generateOutlineButton = document.getElementById('generate-outline-button');
-    const generateEssayButton = document.getElementById('generate-essay-button');
-    const essayOutput = document.getElementById('essay-output');
-    async function generateEssayContent(outlineOnly) { /* ... keep existing logic ... */
-        const topic = essayTopicInput ? essayTopicInput.value.trim() : '';
-        const essayType = essayTypeSelect ? essayTypeSelect.value : 'argumentative';
-        if (!topic) { alert('Please enter an essay topic.'); return; }
-        if(essayOutput) essayOutput.textContent = ''; showOutputLoading('essay-output', true);
-        const response = await callApi('/api/essay', { topic, essay_type: essayType, outline_only: outlineOnly });
-        showOutputLoading('essay-output', false);
-        if(essayOutput) essayOutput.innerHTML = (response && response.essay_content) ? response.essay_content.replace(/\n/g, '<br>') : `Error generating ${outlineOnly ? 'outline' : 'essay'}.`;
+    const essayTopicInput = document.getElementById('essay-topic'); const essayTypeSelect = document.getElementById('essay-type'); const generateOutlineButton = document.getElementById('generate-outline-button'); const generateEssayButton = document.getElementById('generate-essay-button'); const essayOutput = document.getElementById('essay-output');
+    async function generateEssayContent(outlineOnly) { const topic = essayTopicInput?.value.trim() || ''; const essayType = essayTypeSelect?.value || 'argumentative'; if (!topic) { alert('Please enter topic.'); return; } if(essayOutput) essayOutput.textContent = ''; showOutputLoading('essay-output', true); const response = await callApi('/api/essay', { topic, essay_type: essayType, outline_only: outlineOnly }); showOutputLoading('essay-output', false); if(essayOutput) essayOutput.innerHTML = (response?.essay_content) ? response.essay_content.replace(/\n/g, '<br>') : `Error generating ${outlineOnly ? 'outline' : 'essay'}.`; }
+    if(generateOutlineButton) generateOutlineButton.addEventListener('click', () => generateEssayContent(true)); else { console.warn("Generate Outline Button not found."); }
+    if(generateEssayButton) generateEssayButton.addEventListener('click', () => generateEssayContent(false)); else { console.warn("Generate Essay Button not found."); }
+
+    // --- Paraphraser ---
+    const paraphraseInput = document.getElementById('paraphrase-input'); const paraphraseStyleSelect = document.getElementById('paraphrase-style'); const rephraseButton = document.getElementById('rephrase-button'); const paraphraseOutput = document.getElementById('paraphrase-output');
+    if (rephraseButton) { rephraseButton.addEventListener('click', async () => { const textToRephrase = paraphraseInput?.value.trim() || ''; const selectedStyle = paraphraseStyleSelect?.value || 'simpler'; if (!textToRephrase) { alert('Please enter text.'); return; } if (paraphraseOutput) paraphraseOutput.textContent = ''; showOutputLoading('paraphrase-output', true); const response = await callApi('/api/paraphrase', { text: textToRephrase, style: selectedStyle }); showOutputLoading('paraphrase-output', false); if (paraphraseOutput) { paraphraseOutput.textContent = (response?.rephrased_text) || 'Error rephrasing.'; } }); } else { console.warn("Rephrase Button not found."); }
+
+
+    // --- START SCENARIO PRACTICE LOGIC ---
+    const scenarioSetupDiv = document.getElementById('scenario-setup');
+    const scenarioDescriptionInput = document.getElementById('scenario-description');
+    const startScenarioButton = document.getElementById('start-scenario-button');
+    const scenarioInteractionDiv = document.getElementById('scenario-interaction');
+    const scenarioTitleDisplay = document.getElementById('scenario-title-display');
+    const scenarioChatBox = document.getElementById('scenario-chat-box');
+    const scenarioChatInput = document.getElementById('scenario-chat-input'); // Textarea or Input
+    const sendScenarioChatButton = document.getElementById('send-scenario-chat-button');
+    const resetScenarioButton = document.getElementById('reset-scenario-button');
+    let currentScenarioDescription = null;
+    let scenarioChatHistory = [];
+
+    function addScenarioChatMessage(sender, text) {
+        if (!scenarioChatBox) return;
+        const messageDiv = document.createElement('div'); messageDiv.classList.add('message', sender); messageDiv.textContent = text;
+        scenarioChatBox.appendChild(messageDiv); scenarioChatBox.scrollTop = scenarioChatBox.scrollHeight;
+        scenarioChatHistory.push({ sender, text });
     }
-    if(generateOutlineButton) generateOutlineButton.addEventListener('click', () => generateEssayContent(true));
-    else { console.warn("Generate Outline Button not found."); }
-    if(generateEssayButton) generateEssayButton.addEventListener('click', () => generateEssayContent(false));
-    else { console.warn("Generate Essay Button not found."); }
 
-    // --- START NEW PARAPHRASER LOGIC ---
-    const paraphraseInput = document.getElementById('paraphrase-input');
-    const paraphraseStyleSelect = document.getElementById('paraphrase-style');
-    const rephraseButton = document.getElementById('rephrase-button');
-    const paraphraseOutput = document.getElementById('paraphrase-output');
+    async function sendScenarioChatMessage() {
+        console.log("sendScenarioChatMessage started.");
+        if (!scenarioChatInput || !sendScenarioChatButton || !currentScenarioDescription) { return; }
+        if (!auth.currentUser) { return; }
+        const messageText = scenarioChatInput.value.trim(); if (!messageText) { return; }
 
-    if (rephraseButton) {
-        rephraseButton.addEventListener('click', async () => {
-            const textToRephrase = paraphraseInput ? paraphraseInput.value.trim() : '';
-            const selectedStyle = paraphraseStyleSelect ? paraphraseStyleSelect.value : 'simpler';
+        addScenarioChatMessage('user', messageText);
+        const currentUserMessage = messageText; scenarioChatInput.value = '';
+        scenarioChatInput.disabled = true; sendScenarioChatButton.disabled = true;
 
-            if (!textToRephrase) {
-                alert('Please enter text to rephrase.');
-                return;
-            }
+        const typingIndicator = document.createElement('div'); typingIndicator.classList.add('message', 'bot', 'typing'); typingIndicator.textContent = 'Ada is thinking...'; if(scenarioChatBox) { scenarioChatBox.appendChild(typingIndicator); scenarioChatBox.scrollTop = scenarioChatBox.scrollHeight; }
 
-            console.log(`Requesting paraphrase. Style: ${selectedStyle}, Text: ${textToRephrase.substring(0, 50)}...`);
+        const historyForApi = scenarioChatHistory.slice(0, -1).slice(-8); // History before current msg
+        let botReplyText = null;
 
-            if (paraphraseOutput) paraphraseOutput.textContent = ''; // Clear previous output
-            showOutputLoading('paraphrase-output', true);
+        try {
+            const response = await callApi('/api/scenario-chat', { scenario: currentScenarioDescription, history: historyForApi, message: currentUserMessage });
+            if (response?.reply) { botReplyText = response.reply; addScenarioChatMessage('bot', botReplyText); }
+            else { addScenarioChatMessage('bot', 'Sorry, issue in scenario.'); }
+        } catch (error) { console.error("Error processing /api/scenario-chat call:", error); addScenarioChatMessage('bot', 'Error in scenario.'); }
+        finally {
+            if(scenarioChatBox && scenarioChatBox.contains(typingIndicator)) { scenarioChatBox.removeChild(typingIndicator); }
+            scenarioChatInput.disabled = false; sendScenarioChatButton.disabled = false;
+            scenarioChatInput.focus(); console.log("Scenario input re-enabled.");
+        }
+        // --- TTS Disabled for Scenario Replies ---
+        if (botReplyText) { console.log("Scenario reply generated, TTS disabled."); }
+        else { console.log("No scenario reply text."); }
+        console.log("sendScenarioChatMessage finished.");
+    }
 
-            // Call the new backend endpoint
-            const response = await callApi('/api/paraphrase', {
-                text: textToRephrase,
-                style: selectedStyle
-            });
+    if (startScenarioButton) {
+        startScenarioButton.addEventListener('click', async () => {
+            const description = scenarioDescriptionInput?.value.trim() || '';
+            if (!description) { alert('Please describe scenario.'); return; }
+            currentScenarioDescription = description; scenarioChatHistory = [];
+            console.log("Starting scenario:", currentScenarioDescription);
+            if (scenarioChatBox) scenarioChatBox.innerHTML = '';
+            if (scenarioTitleDisplay) scenarioTitleDisplay.textContent = `Scenario: ${description.substring(0, 50)}${description.length > 50 ? '...' : ''}`;
+            if (scenarioSetupDiv) scenarioSetupDiv.style.display = 'none';
+            if (scenarioInteractionDiv) scenarioInteractionDiv.style.display = 'block';
+            if (scenarioChatInput) scenarioChatInput.value = '';
 
-            showOutputLoading('paraphrase-output', false);
+            showLoading(true);
+            const response = await callApi('/api/scenario-chat', { scenario: currentScenarioDescription, start: true });
+            showLoading(false);
 
-            if (paraphraseOutput) {
-                if (response && response.rephrased_text) {
-                    paraphraseOutput.textContent = response.rephrased_text;
-                } else {
-                    paraphraseOutput.textContent = 'Error rephrasing text.';
-                }
-            }
+            if (response?.reply) {
+                 addScenarioChatMessage('bot', response.reply);
+                 console.log("Scenario started, TTS disabled.");
+                // speakText(response.reply, true); // TTS explicitly disabled
+            } else { addScenarioChatMessage('bot', 'Okay, ready. You start.'); } // Fallback
+            if(scenarioChatInput) scenarioChatInput.focus();
         });
-    } else {
-         console.warn("Rephrase Button not found.");
-    }
-    // --- END NEW PARAPHRASER LOGIC ---
+    } else { console.warn("Start Scenario Button not found."); }
+
+    if (sendScenarioChatButton) { sendScenarioChatButton.addEventListener('click', sendScenarioChatMessage); }
+    else { console.warn("Send Scenario Chat Button not found."); }
+
+    if (scenarioChatInput) {
+        scenarioChatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendScenarioChatMessage(); } });
+    } else { console.warn("Scenario Chat Input not found."); }
+
+    if (resetScenarioButton) {
+        resetScenarioButton.addEventListener('click', () => {
+            console.log("Resetting scenario."); currentScenarioDescription = null; scenarioChatHistory = [];
+            if (scenarioChatBox) scenarioChatBox.innerHTML = ''; if (scenarioChatInput) scenarioChatInput.value = '';
+            if (scenarioInteractionDiv) scenarioInteractionDiv.style.display = 'none'; if (scenarioSetupDiv) scenarioSetupDiv.style.display = 'block';
+            if (scenarioDescriptionInput) scenarioDescriptionInput.value = '';
+        });
+    } else { console.warn("Reset Scenario Button not found."); }
+    // --- END SCENARIO PRACTICE LOGIC ---
 
 }); // End DOMContentLoaded
