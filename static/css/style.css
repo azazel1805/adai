@@ -322,6 +322,11 @@ main {
 #chat-input {
    width: 100%; /* Ensure input takes full width */
    box-sizing: border-box;
+    padding: 15px 15px;
+    resize: none;
+    font-size: 1em;
+    max-height: 80px;
+    overflow-y: auto;
 }
 
 .button-group {
