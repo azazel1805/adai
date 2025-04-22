@@ -34,7 +34,7 @@
             <button class="feature-button" data-feature="grammar"><i class="fas fa-spell-check"></i> Grammar Aid</button>
             <button class="feature-button" data-feature="essay"><i class="fas fa-pen-nib"></i> Essay Helper</button>
             <button class="feature-button" data-feature="paraphraser"><i class="fas fa-retweet"></i> Paraphraser</button>
-             {/* <!-- ADD SCENARIO BUTTON --> */}
+             
              <button class="feature-button" data-feature="scenario"><i class="fas fa-theater-masks"></i> Scenario Practice</button>
         </nav>
 
@@ -55,9 +55,9 @@
                         <div class="message bot">Hi! I'm Ada. How can I help you practice English today?</div>
                     </div>
                     <div class="chat-input-area">
-                         {/* <!-- Your change: input instead of textarea --> */}
+                         
                          <input type="text" id="chat-input" placeholder="Type your message...">
-                         {/* <!-- Your change: button group --> */}
+                         
                          <div class="button-group">
                             <button id="send-chat-button" class="control-button"><i class="fas fa-paper-plane"></i></button>
                             <button id="speak-mode-button" class="control-button" title="Toggle Speak Mode"><i class="fas fa-microphone"></i></button>
@@ -178,7 +178,7 @@
                  <div id="paraphrase-output" class="output-box loading-indicator"></div>
              </div>
 
-             {/* <!-- START NEW SCENARIO SECTION --> */}
+             
              <div id="scenario" class="feature-content">
                  <h2><i class="fas fa-theater-masks"></i> Scenario Practice</h2>
                  <div id="scenario-setup">
@@ -196,18 +196,18 @@
                      <div class="chat-container scenario-chat-container">
                          <div id="scenario-chat-box"></div>
                          <div class="chat-input-area scenario-input-area">
-                              {/* Use input matching the main chatbot change */}
+                              
                               <input type="text" id="scenario-chat-input" placeholder="Type your response...">
-                              <div class="button-group"> {/* Apply button group consistency */}
+                              <div class="button-group"> 
                                  <button id="send-scenario-chat-button" class="control-button"><i class="fas fa-paper-plane"></i> Send</button>
-                                 {/* Removed scenario-specific TTS/STT buttons - use global ones */}
+                                 
                              </div>
                          </div>
                      </div>
                      <button id="reset-scenario-button" class="control-button secondary-button" style="margin-top: 15px;"><i class="fas fa-undo"></i> New Scenario</button>
                  </div>
              </div>
-             {/* <!-- END NEW SCENARIO SECTION --> */}
+            
 
         </div> <!-- End feature-display -->
     </main>
@@ -218,7 +218,7 @@
     </div>
 
     <footer class="page-footer">
-        <p class="footer-credit">Created by HOT®</p>
+        <p class="footer-credit">Created by HOT® Powered by GEMINI</p>
     </footer>
 
     <!-- Firebase Config -->
