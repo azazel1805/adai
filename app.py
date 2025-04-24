@@ -407,6 +407,54 @@ Original Scenario Description:
     print(f"Scenario chat reply generated: {response_content[:100]}...")
     return jsonify({"reply": response_content})
 # --- END NEW SCENARIO CHAT ROUTE ---
+@app.route('/api/summarize', methods=['POST'])
+def api_summarize():
+    # --- Verify Auth Token ---
+    user_info = verify_firebase_token(request)
+    if user_info is None:
+        return jsonify({"error": "Unauthorized: Missing or invalid token"}), 401
+    # --- --- --- --- --- ---
+
+    data = request.json
+    if not data: return jsonify({"error": "Invalid JSON payload"}), 400
+
+    original_text = data.get('text')
+
+    if not original_text or not isinstance(original_text, str):
+        return jsonify({"error": "Text to summarize is required"}), 400
+
+    # Optional: Add length check if needed (Gemini handles large inputs, but good practice)
+    # MAX_SUMMARY_LENGTH = 20000 # Example limit
+    # if len(original_text) > MAX_SUMMARY_LENGTH:
+    #     return jsonify({"error": f"Input text is too long (max {MAX_SUMMARY_LENGTH} chars)."}), 413 # Payload Too Large
+
+    print(f"Summarizer request received. Text length: {len(original_text)}")
+
+    # Craft the prompt for Gemini - keep it simple and direct
+    prompt = f"""
+Instructions:
+Summarize the following text concisely, capturing the main points and key information.
+Output *only* the summary itself.
+
+Text to Summarize:
+---
+{original_text}
+---
+
+Summary:
+"""
+    # Call the helper function
+    summary_result = generate_gemini_response(prompt, is_chat=False) # Not a chat interaction
+
+    # Check if the helper returned an error object
+    if isinstance(summary_result, dict) and 'error' in summary_result:
+        print(f"Error during summarization: {summary_result['error']}")
+        # Return error message in the expected field for the frontend
+        return jsonify({"summary": f"Error: {summary_result['error']}"}), 500
+
+    print(f"Summarization successful. Summary length: {len(summary_result)}")
+    # Return the summary in the expected JSON format
+    return jsonify({"summary": summary_result})
 
 
 # --- Main Execution ---
