@@ -399,5 +399,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else { console.warn("Reset Scenario Button not found."); }
     // --- END SCENARIO PRACTICE LOGIC ---
+const summarizerInput = document.getElementById('summarizer-input');
+    const summarizeButton = document.getElementById('summarize-button');
+    const summarizerOutput = document.getElementById('summarizer-output');
 
+    if (summarizeButton) {
+        summarizeButton.addEventListener('click', async () => {
+            const textToSummarize = summarizerInput?.value.trim() || '';
+
+            if (!textToSummarize) {
+                alert('Please enter text to summarize.');
+                return;
+            }
+
+            console.log(`Requesting summarization for text: ${textToSummarize.substring(0, 50)}...`);
+
+            if (summarizerOutput) summarizerOutput.textContent = ''; // Clear previous output
+            showOutputLoading('summarizer-output', true);
+
+            // Call the new backend endpoint
+            const response = await callApi('/api/summarize', {
+                text: textToSummarize
+                // Add other parameters like 'length' or 'style' if needed later
+            });
+
+            showOutputLoading('summarizer-output', false);
+
+            if (summarizerOutput) {
+                if (response && response.summary) {
+                    summarizerOutput.textContent = response.summary;
+                } else {
+                    // Display error message from API if available, otherwise generic error
+                    summarizerOutput.textContent = `Error summarizing text: ${response?.error || 'Unknown error'}`;
+                }
+            }
+        });
+    } else {
+         console.warn("Summarize Button not found.");
+    }
 }); // End DOMContentLoaded
