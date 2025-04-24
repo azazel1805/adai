@@ -39,6 +39,7 @@
              
              <button class="feature-button" data-feature="scenario"><i class="fas fa-theater-masks"></i> Scenario Practice</button>
             <button class="feature-button" data-feature="summarizer"><i class="fas fa-compress-alt"></i> Summarizer</button>
+            <button class="feature-button" data-feature="translator"><i class="fas fa-language"></i> Translate & Explain</button>
         </nav>
 
         <div class="feature-display">
@@ -226,6 +227,23 @@
                   </div>
                  <div id="summarizer-output" class="output-box loading-indicator">
                      
+                 </div>
+             </div>
+              <div id="translator" class="feature-content">
+                 <h2><i class="fas fa-language"></i> Translation Explainer</h2>
+                 <div class="controls">
+                      <label for="translator-input">Text to Translate & Explain:</label>
+                      <textarea id="translator-input" rows="8" placeholder="Enter text in another language (like Turkish, French, Spanish, etc.) to translate into English and get explanations..."></textarea>
+                 </div>
+                  <div class="controls">
+                       <button id="translate-explain-button" class="control-button"><i class="fas fa-globe-americas"></i> Translate & Explain</button>
+                  </div>
+                 <div id="translator-output" class="output-box loading-indicator">
+                     {/* <!-- Translation and explanation will appear here --> */}
+                     <h3>English Translation:</h3>
+                     <div id="translation-display" class="output-subsection"></div>
+                     <h3>Explanation:</h3>
+                     <div id="explanation-display" class="output-subsection"></div>
                  </div>
              </div>
              
