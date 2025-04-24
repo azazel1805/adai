@@ -456,6 +456,97 @@ Summary:
     # Return the summary in the expected JSON format
     return jsonify({"summary": summary_result})
 
+# --- START NEW TRANSLATION EXPLAINER ROUTE ---
+@app.route('/api/translate-explain', methods=['POST'])
+def api_translate_explain():
+    # --- Verify Auth Token ---
+    user_info = verify_firebase_token(request)
+    if user_info is None:
+        return jsonify({"error": "Unauthorized: Missing or invalid token"}), 401
+    # --- --- --- --- --- ---
+
+    data = request.json
+    if not data: return jsonify({"error": "Invalid JSON payload"}), 400
+
+    original_text = data.get('text_translate') # Match input_name from prompt info
+
+    if not original_text or not isinstance(original_text, str):
+        return jsonify({"error": "Text to translate is required"}), 400
+
+    print(f"Translate & Explain request received. Text: {original_text[:100]}...")
+
+    # Craft the prompt for Gemini based on your instruction
+    prompt = f"""
+You are an English language tutor. Your task is twofold:
+1. Translate the following text accurately into English. Present this translation clearly under the heading "Translation:".
+2. Briefly explain any interesting or potentially difficult vocabulary choices or grammatical structures used in *your* English translation that would be useful for an English language learner. Present this explanation clearly under the heading "Explanation:". Keep the explanation concise and focused on learning points.
+
+Input Text (may be in any language):
+---
+{original_text}
+---
+
+Please provide your response strictly following this structure:
+Translation:
+[Your English translation here]
+
+Explanation:
+[Your explanation of vocab/grammar from the translation here]
+"""
+
+    # Call the helper function
+    translation_explanation_result = generate_gemini_response(prompt, is_chat=False)
+
+    # Check for direct error from helper
+    if isinstance(translation_explanation_result, dict) and 'error' in translation_explanation_result:
+        print(f"Error during translation/explanation: {translation_explanation_result['error']}")
+        return jsonify({"error": f"AI Service Error: {translation_explanation_result['error']}"}), 500
+    if not isinstance(translation_explanation_result, str):
+         print(f"Unexpected response type from Gemini: {type(translation_explanation_result)}")
+         return jsonify({"error": "Received unexpected response format from AI."}), 500
+
+
+    # --- Parse the Translation and Explanation ---
+    translation_text = "Could not parse translation."
+    explanation_text = "Could not parse explanation."
+    try:
+        # Define markers robustly
+        translation_marker = "Translation:"
+        explanation_marker = "Explanation:"
+
+        # Find marker positions
+        trans_idx = translation_explanation_result.find(translation_marker)
+        expl_idx = translation_explanation_result.find(explanation_marker)
+
+        if trans_idx != -1:
+            trans_start = trans_idx + len(translation_marker)
+            # End of translation is start of explanation, or end of string if explanation missing
+            trans_end = expl_idx if (expl_idx != -1 and expl_idx > trans_idx) else len(translation_explanation_result)
+            translation_text = translation_explanation_result[trans_start:trans_end].strip()
+
+        if expl_idx != -1:
+             expl_start = expl_idx + len(explanation_marker)
+             explanation_text = translation_explanation_result[expl_start:].strip()
+
+        # Handle case where markers might be missing
+        if trans_idx == -1 and expl_idx == -1 and len(translation_explanation_result) > 0:
+             # If no markers, assume the whole thing is maybe the translation? Or error?
+             # Let's default to putting it in translation for now.
+             translation_text = translation_explanation_result.strip()
+             explanation_text = "(No explanation section found in response)"
+
+    except Exception as parse_error:
+        print(f"Error parsing translation/explanation response: {parse_error}")
+        # Return the raw response if parsing fails, split might help frontend
+        translation_text = "Error processing AI response."
+        explanation_text = translation_explanation_result # Put raw in explanation
+
+    print("Translation & Explanation successful.")
+    return jsonify({
+        "translation": translation_text,
+        "explanation": explanation_text
+    })
+# --- END NEW TRANSLATION EXPLAINER ROUTE ---
 
 # --- Main Execution ---
 if __name__ == '__main__':
