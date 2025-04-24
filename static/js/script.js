@@ -437,4 +437,66 @@ const summarizerInput = document.getElementById('summarizer-input');
     } else {
          console.warn("Summarize Button not found.");
     }
+
+    // --- START TRANSLATION EXPLAINER LOGIC ---
+    const translatorInput = document.getElementById('translator-input');
+    const translateExplainButton = document.getElementById('translate-explain-button');
+    const translatorOutputBox = document.getElementById('translator-output'); // Parent box
+    const translationDisplay = document.getElementById('translation-display');
+    const explanationDisplay = document.getElementById('explanation-display');
+
+    if (translateExplainButton) {
+        translateExplainButton.addEventListener('click', async () => {
+            const textToTranslate = translatorInput?.value.trim() || '';
+
+            if (!textToTranslate) {
+                alert('Please enter text to translate and explain.');
+                return;
+            }
+
+            console.log(`Requesting translation & explanation for: ${textToTranslate.substring(0, 50)}...`);
+
+            // Clear previous outputs
+            if (translationDisplay) translationDisplay.textContent = '';
+            if (explanationDisplay) explanationDisplay.textContent = '';
+            showOutputLoading('translator-output', true); // Show loading on parent box
+
+            // Call the new backend endpoint
+            const response = await callApi('/api/translate-explain', {
+                text_translate: textToTranslate // Match the input_name from prompt description
+            });
+
+            showOutputLoading('translator-output', false);
+
+            // Display results or error
+            if (response && response.translation && response.explanation) {
+                if (translationDisplay) translationDisplay.textContent = response.translation;
+                // Use innerHTML for explanation if it might contain markdown/formatting
+                if (explanationDisplay) explanationDisplay.innerHTML = response.explanation.replace(/\n/g, '<br>');
+            } else {
+                const errorMsg = `Error translating/explaining: ${response?.error || 'Unknown error'}`;
+                console.error(errorMsg);
+                 // Display error within the main output box
+                 if(translatorOutputBox) {
+                     // Clear specific parts and show error in main box
+                     if (translationDisplay) translationDisplay.textContent = '';
+                     if (explanationDisplay) explanationDisplay.textContent = '';
+                     // Hacky way to display error without adding another element:
+                     // Create a temporary paragraph for the error.
+                     const errorP = document.createElement('p');
+                     errorP.style.color = 'red';
+                     errorP.style.fontStyle = 'italic';
+                     errorP.textContent = errorMsg;
+                     translatorOutputBox.insertBefore(errorP, translatorOutputBox.firstChild);
+                     // Remove the error message after a delay or next successful request
+                     setTimeout(() => { if(translatorOutputBox.contains(errorP)) translatorOutputBox.removeChild(errorP); }, 8000);
+                 } else {
+                      alert(errorMsg); // Fallback alert
+                 }
+
+            }
+        });
+    } else {
+         console.warn("Translate & Explain Button not found.");
+    }
 }); // End DOMContentLoaded
