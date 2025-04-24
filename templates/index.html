@@ -38,6 +38,7 @@
             <button class="feature-button" data-feature="paraphraser"><i class="fas fa-retweet"></i> Paraphraser</button>
              
              <button class="feature-button" data-feature="scenario"><i class="fas fa-theater-masks"></i> Scenario Practice</button>
+            <button class="feature-button" data-feature="summarizer"><i class="fas fa-compress-alt"></i> Summarizer</button>
         </nav>
 
         <div class="feature-display">
@@ -213,9 +214,23 @@
                  </div>
              </div>
              <!-- END NEW SCENARIO SECTION -->
-            
+               <div id="summarizer" class="feature-content">
+                 <h2><i class="fas fa-compress-alt"></i> Text Summarizer</h2>
+                 <div class="controls">
+                      <label for="summarizer-input">Text to Summarize:</label>
+                      <textarea id="summarizer-input" rows="10" placeholder="Paste or type the text you want to summarize here..."></textarea>
+                 </div>
+                  <div class="controls">
+                       
+                       <button id="summarize-button" class="control-button"><i class="fas fa-list"></i> Summarize</button>
+                  </div>
+                 <div id="summarizer-output" class="output-box loading-indicator">
+                     
+                 </div>
+             </div>
+             
 
-        </div> <!-- End feature-display -->
+        </div><!-- End feature-display -->
     </main>
 
     <div id="loading-overlay" style="display: none;">
@@ -235,8 +250,8 @@
     <p class="footer-credit">© 2025 ADAI</p>
     <p style="margin-top: 5px; font-size: 0.8em;">
         <a href="{{ url_for('privacy_policy') }}" target="_blank">Privacy Policy</a>
-        {# Add Terms of Service link later if needed #}
-        {# | <a href="/terms">Terms of Service</a> #}
+        
+       | <a href="/terms">Terms of Service</a> 
     </p>
 </footer>
     <amp-auto-ads type="adsense"
