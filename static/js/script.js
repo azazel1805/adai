@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initial Loading State ---
     showLoading(true);
-    
+    if (mainContent) mainContent.style.display = 'none';
+    if (bodyElement) bodyElement.classList.add('auth-loading');
 
 
     // --- Auth State Listener (Core Logic) ---
@@ -18,23 +19,28 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
         const currentPath = window.location.pathname;
         if (!initialAuthCheckComplete) {
-            console.log("Initial auth state determined (Login Temporarily Disabled).");
+            console.log("Initial auth state determined.");
             initialAuthCheckComplete = true;
             if (bodyElement) bodyElement.classList.remove('auth-loading');
-            if (mainContent) mainContent.style.display = 'flex';
         }
         if (user) {
             // User is SIGNED IN
             console.log('Auth State: Signed In - User:', user.email);
             if(userEmailDisplay) userEmailDisplay.textContent = user.email;
             if(userInfo) userInfo.style.display = 'flex';
-            
+            if(mainContent) mainContent.style.display = 'flex';
+            if (currentPath === '/signin' || currentPath.startsWith('/signin?')) {
+                 console.log("Redirecting signed-in user from /signin to /");
+                 window.location.replace('/');
+            } else { showLoading(false); }
         } else {
             // User is SIGNED OUT
             console.log('Auth State: Signed Out');
             if(userInfo) userInfo.style.display = 'none';
             if(mainContent) mainContent.style.display = 'none';
-            
+            if (currentPath !== '/signin' && !currentPath.startsWith('/signin?')) {
+                console.log("Redirecting signed-out user to /signin");
+                window.location.replace('/signin');
             } else { showLoading(false); }
         }
     });
