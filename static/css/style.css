@@ -506,17 +506,15 @@ main {
 .page-footer {
     text-align: center;
     padding: 20px 0;
-    /* margin-top: 30px; */ /* Can remove this if auto margin provides enough space */
+    /* Removed fixed margin-top */
     width: 100%;
     border-top: 1px solid var(--border-color);
-    margin-top: auto; /* ADD THIS LINE */
+    margin-top: auto; /* ADDED - Push footer down */
+    flex-shrink: 0; /* Prevent footer from shrinking */
 }
-
-.footer-credit {
-    font-size: 0.85em;
-    color: #888;
-    margin: 0;
-}
+.footer-credit { font-size: 0.85em; color: #888; margin: 0; }
+.page-footer a { color: var(--accent-red); text-decoration: none; }
+.page-footer a:hover { text-decoration: underline; }
 
 
 /* --- Added Styles for Chat Controls (GLOBAL) --- */
