@@ -40,6 +40,7 @@
              <button class="feature-button" data-feature="scenario"><i class="fas fa-theater-masks"></i> Scenario Practice</button>
             <button class="feature-button" data-feature="summarizer"><i class="fas fa-compress-alt"></i> Summarizer</button>
             <button class="feature-button" data-feature="translator"><i class="fas fa-language"></i> Translate & Explain</button>
+            <button class="feature-button" data-feature="object-identifier"><i class="fas fa-camera-retro"></i> Object Identifier</button>
         </nav>
 
         <div class="feature-display">
@@ -249,6 +250,29 @@
              
 
         </div><!-- End feature-display -->
+         <div id="object-identifier" class="feature-content">
+                <h2><i class="fas fa-camera-retro"></i> Object Identifier (Upload Image)</h2>
+                <p>Upload an image from your device, and Ada will try to identify the main objects in it.</p>
+
+                <div class="controls">
+                     <label for="object-image-upload">Select Image:</label>
+                     
+                     <input type="file" id="object-image-upload" accept="image/png, image/jpeg, image/jpg, image/webp">
+                     <button id="identify-objects-button" class="control-button" disabled><i class="fas fa-search-location"></i> Identify Objects</button>
+                </div>
+
+                
+                <div id="image-preview-area" style="margin-top: 15px; margin-bottom: 15px; max-width: 400px; display: none;">
+                     <img id="image-preview" src="#" alt="Image Preview" style="max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 5px;" />
+                </div>
+
+               
+                <div id="object-identifier-output" class="output-box loading-indicator">
+                    
+                </div>
+                <p style="font-size: 0.8em; color: #666; margin-top: 10px;">Note: Object identification might not be perfect, especially for complex images.</p>
+            </div>
+            
     </main>
 
     <div id="loading-overlay" style="display: none;">
