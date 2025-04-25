@@ -546,7 +546,79 @@ Explanation:
         "translation": translation_text,
         "explanation": explanation_text
     })
-# --- END NEW TRANSLATION EXPLAINER ROUTE ---
+    # --- END NEW TRANSLATION EXPLAINER ROUTE ---
+
+    # --- START NEW OBJECT IDENTIFIER ROUTE ---
+@app.route('/api/identify-objects', methods=['POST'])
+def api_identify_objects():
+    # --- Verify Auth Token ---
+    user_info = verify_firebase_token(request)
+    if user_info is None:
+        return jsonify({"error": "Unauthorized: Missing or invalid token"}), 401
+    # --- --- --- --- --- ---
+
+    data = request.json
+    if not data: return jsonify({"error": "Invalid JSON payload"}), 400
+
+    base64_image_data = data.get('image_data')
+    mime_type = data.get('mime_type') # e.g., 'image/jpeg', 'image/png'
+
+    if not base64_image_data or not mime_type:
+        return jsonify({"error": "Missing image_data or mime_type"}), 400
+
+    if text_model is None: # Check if the multimodal model loaded correctly
+         return jsonify({"error": "AI Vision service not configured"}), 503
+
+    print(f"Object ID request received. Mime Type: {mime_type}, Data Length: {len(base64_image_data)}")
+
+    try:
+        # --- Prepare Image Data for Gemini ---
+        # The Python SDK often expects image data structured like this:
+        image_part = {
+            "mime_type": mime_type,
+            "data": base64_image_data # Pass the base64 string directly
+        }
+
+        # --- Craft the Prompt ---
+        prompt_text = "Identify the main objects clearly visible in this image. List them concisely."
+        # Alternative prompts:
+        # prompt_text = "Describe this image in simple terms, focusing on the objects."
+        # prompt_text = "What items are in this picture?"
+
+        print("--- Sending Image + Prompt to Gemini ---")
+
+        # --- Call Gemini with Multimodal Input ---
+        # The generate_content method accepts a list containing text and image parts
+        response = text_model.generate_content([prompt_text, image_part]) # Send both parts
+
+        # --- Process Response ---
+        if not response.candidates or not response.candidates[0].content.parts:
+             block_reason = getattr(response.prompt_feedback, 'block_reason', None)
+             if block_reason:
+                 error_msg = f"Blocked by safety filters ({block_reason.name})"
+                 print(f"Gemini vision request blocked: {block_reason.name}")
+                 return jsonify({"error": error_msg}), 400 # Bad Request might be appropriate
+             else:
+                 print("Gemini vision response was empty or malformed.")
+                 return jsonify({"error": "AI returned empty result for image"}), 500
+
+        description_text = response.text
+        print(f"Object ID successful. Description: {description_text[:100]}...")
+        return jsonify({"description": description_text})
+
+    # --- Error Handling for Vision Call ---
+    except google.api_core.exceptions.ResourceExhausted as e:
+         print(f"Error calling Gemini Vision API: Quota Exceeded - {e}")
+         return jsonify({"error": "AI service quota exceeded"}), 500
+    except google.api_core.exceptions.InvalidArgument as e:
+         # This could be due to badly formatted image data or prompt
+         print(f"Error calling Gemini Vision API: Invalid Argument - {e}")
+         return jsonify({"error": "Invalid request to AI (check image format/prompt)"}), 400
+    except Exception as e:
+        print(f"Generic Error calling Gemini Vision API: {type(e).__name__} - {e}")
+        return jsonify({"error": "Unexpected AI service error processing image"}), 500
+# --- END NEW OBJECT IDENTIFIER ROUTE ---
+
 
 # --- Main Execution ---
 if __name__ == '__main__':
