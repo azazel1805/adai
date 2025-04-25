@@ -499,4 +499,113 @@ const summarizerInput = document.getElementById('summarizer-input');
     } else {
          console.warn("Translate & Explain Button not found.");
     }
+
+     // --- START OBJECT IDENTIFIER LOGIC ---
+    const objectImageUpload = document.getElementById('object-image-upload');
+    const identifyObjectsButton = document.getElementById('identify-objects-button');
+    const imagePreviewArea = document.getElementById('image-preview-area');
+    const imagePreview = document.getElementById('image-preview');
+    const objectIdentifierOutput = document.getElementById('object-identifier-output');
+
+    let uploadedImageData = { base64: null, mimeType: null }; // Store image data
+
+    // Listener for file input change
+    if (objectImageUpload) {
+        objectImageUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                // No file selected or selection cancelled
+                if(imagePreviewArea) imagePreviewArea.style.display = 'none';
+                if(imagePreview) imagePreview.src = '#';
+                if(identifyObjectsButton) identifyObjectsButton.disabled = true;
+                uploadedImageData = { base64: null, mimeType: null };
+                if(objectIdentifierOutput) objectIdentifierOutput.textContent = ''; // Clear output
+                return;
+            }
+
+            // Basic validation (type and size)
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Invalid file type. Please select a PNG, JPEG, JPG, or WEBP image.');
+                objectImageUpload.value = ''; // Reset file input
+                return;
+            }
+            const maxSizeMB = 5; // Example: 5MB limit
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                alert(`File is too large. Maximum size is ${maxSizeMB}MB.`);
+                objectImageUpload.value = ''; // Reset file input
+                return;
+            }
+
+            // Use FileReader to get Base64
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+                // Result includes prefix like "data:image/jpeg;base64,"
+                const fullDataUrl = reader.result;
+                if(imagePreview) imagePreview.src = fullDataUrl; // Show preview
+                if(imagePreviewArea) imagePreviewArea.style.display = 'block'; // Make preview area visible
+                if(identifyObjectsButton) identifyObjectsButton.disabled = false; // Enable button
+                if(objectIdentifierOutput) objectIdentifierOutput.textContent = ''; // Clear previous output
+
+                // Store the Base64 part and mime type
+                try {
+                    uploadedImageData.mimeType = fullDataUrl.substring(fullDataUrl.indexOf(':') + 1, fullDataUrl.indexOf(';'));
+                    uploadedImageData.base64 = fullDataUrl.substring(fullDataUrl.indexOf(',') + 1);
+                    console.log(`Image loaded. Type: ${uploadedImageData.mimeType}, Size: ~${(uploadedImageData.base64.length * 0.75 / 1024).toFixed(2)} KB`);
+                } catch (e) {
+                     console.error("Error processing image data URL:", e);
+                     alert("Could not process the selected image.");
+                     if(identifyObjectsButton) identifyObjectsButton.disabled = true;
+                     uploadedImageData = { base64: null, mimeType: null };
+                }
+            }
+
+            reader.onerror = (error) => {
+                console.error('FileReader error:', error);
+                alert('Error reading the selected file.');
+                if(identifyObjectsButton) identifyObjectsButton.disabled = true;
+                uploadedImageData = { base64: null, mimeType: null };
+            };
+
+            reader.readAsDataURL(file); // Read the file as Base64 Data URL
+        });
+    } else {
+        console.warn("Object Image Upload input not found.");
+    }
+
+    // Listener for Identify button click
+    if (identifyObjectsButton) {
+        identifyObjectsButton.addEventListener('click', async () => {
+            if (!uploadedImageData.base64 || !uploadedImageData.mimeType) {
+                alert('Please select a valid image first.');
+                return;
+            }
+
+            console.log("Requesting object identification...");
+
+            if (objectIdentifierOutput) objectIdentifierOutput.textContent = ''; // Clear previous output
+            showOutputLoading('object-identifier-output', true);
+
+            // Call the backend endpoint for object identification/description
+            const response = await callApi('/api/identify-objects', {
+                image_data: uploadedImageData.base64,
+                mime_type: uploadedImageData.mimeType
+            });
+
+            showOutputLoading('object-identifier-output', false);
+
+            if (objectIdentifierOutput) {
+                if (response && response.description) {
+                    // Display the text description
+                    objectIdentifierOutput.textContent = response.description;
+                } else {
+                    objectIdentifierOutput.textContent = `Error identifying objects: ${response?.error || 'Unknown error'}`;
+                }
+            }
+        });
+    } else {
+        console.warn("Identify Objects Button not found.");
+    }
+    // --- END OBJECT IDENTIFIER LOGIC ---
 }); // End DOMContentLoaded
