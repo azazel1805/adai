@@ -1,7 +1,8 @@
 import os
 import google.generativeai as genai
 import requests
-from flask import Flask, render_template, request, jsonify, Response # Added Response
+# Add send_from_directory
+from flask import Flask, render_template, request, jsonify, Response, redirect, url_for, send_from_directory
 from dotenv import load_dotenv
 
 # --- Initialization ---
@@ -146,6 +147,14 @@ def index(): return render_template('index.html')
 def signin_page(): return render_template('signin.html')
 
 # --- Backend API Routes ---
+@app.route('/sw.js')
+def service_worker():
+    # Serves sw.js file from the static directory at the root path /sw.js
+    # mimetype is important for the browser to interpret it correctly
+    response = send_from_directory('static', 'sw.js', mimetype='application/javascript')
+    # Optional: Add headers to prevent caching of the service worker file itself by intermediate caches
+    # response.headers['Cache-Control'] = 'no-cache'
+    return response
 
 @app.route('/api/chat', methods=['POST'])
 def api_chat():
