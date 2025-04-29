@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADAI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦕</text></svg>">
+    
+    
+    <meta name="theme-color" content="#ffffff"/>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+    
+     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192x192.png') }}"> 
+    <meta name="apple-mobile-web-app-capable" content="yes"> 
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"> 
+     <meta name="apple-mobile-web-app-title" content="ADAI"> 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -324,6 +333,22 @@
     <amp-auto-ads type="adsense"
         data-ad-client="ca-pub-9489023426075597">
 </amp-auto-ads>
+     <script>
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            // Register the service worker, scope defaults to '/' if served from root
+            navigator.serviceWorker.register('/sw.js') // Path served by Flask route
+              .then(registration => {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              })
+              .catch(err => {
+                console.log('ServiceWorker registration failed: ', err);
+              });
+          });
+        } else {
+            console.log('Service Worker not supported in this browser.');
+        }
+    </script>
 
 </body>
 </html>
