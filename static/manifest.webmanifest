@@ -1,23 +1,40 @@
 {
-  "name": "ADAI",
+  "name": "ADAI - AI English Assistant",
   "short_name": "ADAI",
   "description": "Your personal AI assistant for practicing and improving English skills.",
+  "id": "/", // Added ID field (use same as start_url or a unique path)
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8f8f0",
   "theme_color": "#ffffff",
+  "orientation": "any", // Added orientation field
   "icons": [
     {
       "src": "/static/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"  // Explicitly "any"
+    },
+     {
+      "src": "/static/icons/icon-192x192.png", // Can often reuse the same icon file
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable" // Explicitly "maskable"
     },
     {
       "src": "/static/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any" // Explicitly "any"
+    },
+     {
+      "src": "/static/icons/icon-512x512.png", // Can often reuse the same icon file
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable" // Explicitly "maskable"
     }
-  ]
+  ],
+   "launch_handler": { // Added launch_handler object
+      "client_mode": ["navigate-existing", "auto"] // Default behavior - focus existing window if open
+   }
 }
