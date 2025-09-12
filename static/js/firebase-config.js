@@ -1,13 +1,13 @@
 // IMPORTANT: Replace with your actual Firebase project configuration
 // Get this from your Firebase project settings > General > Your apps > Web app
 const firebaseConfig = {
-  apiKey: "AIzaSyAzyy2QgCQN11bt7gKhj4FnD2zAWDCW-Dg",
-  authDomain: "adai02.firebaseapp.com",
-  projectId: "adai02",
-  storageBucket: "adai02.firebasestorage.app",
-  messagingSenderId: "7345157661",
-  appId: "1:7345157661:web:e7603dbb585c5bcc9bf8f4",
-  measurementId: "G-2LH0E7KV1M"
+  apiKey: "AIzaSyA6pi_wJowqykEwanlFtEBQ3o0rSrXDqiQ",
+  authDomain: "wlaaiproject.firebaseapp.com",
+  projectId: "wlaaiproject",
+  storageBucket: "wlaaiproject.firebasestorage.app",
+  messagingSenderId: "259132340735",
+  appId: "1:259132340735:web:129ee43b128692e0df4fca",
+  measurementId: "G-NT181W1S22"
 };
 
 // Initialize Firebase
