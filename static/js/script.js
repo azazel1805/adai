@@ -189,8 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadVoices() {
         if (typeof synth === 'undefined') return;
         const voices = synth.getVoices();
-        britVoice = voices.find(voice => voice.lang === 'en-GB' && voice.name.includes('Google')) ||
-                   voices.find(voice => voice.lang === 'en-GB');
+        let usaVoice = voices.find(voice => voice.lang === 'en-US' && voice.name.includes('Google')) ||
+               voices.find(voice => voice.lang === 'en-US');
     }
     if (typeof synth !== 'undefined') {
         if (synth.onvoiceschanged !== undefined) { synth.onvoiceschanged = loadVoices; }
