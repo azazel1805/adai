@@ -23,7 +23,7 @@ try:
     else:
         try:
             genai.configure(api_key=GEMINI_API_KEY)
-            text_model = genai.GenerativeModel('gemini-1.5-flash') # Or your preferred model
+            text_model = genai.GenerativeModel('gemini-2.0-flash') # Or your preferred model
             print("Gemini AI Model configured.")
         except Exception as gemini_config_error:
             print(f"ERROR configuring Gemini AI: {gemini_config_error}")
